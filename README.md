@@ -1,4 +1,4 @@
-# DomainHarbor
+# NameDeal
 
 一个轻量的 PHP 域名停放与询盘管理系统，支持：
 
