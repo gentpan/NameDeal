@@ -1,0 +1,5 @@
+{
+  "admin_password_hash": "$2y$10$REPLACE_WITH_BCRYPT_HASH",
+  "site_name": "DOMAIN.LS",
+  "site_description": "域名出售平台"
+}

@@ -1,0 +1,35 @@
+# 数据与密钥（不入库）
+data/*
+!data/.gitkeep
+!data/.htaccess
+!data/*.example.json
+!data/verification_codes/
+data/verification_codes/*
+!data/verification_codes/.htaccess
+*.db
+*.sqlite
+*.sqlite3
+
+# 环境变量
+.env
+.env.*
+!.env.example
+
+# 日志文件
+*.log
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# IDE 文件
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 临时文件
+tmp/
+temp/
+cache/

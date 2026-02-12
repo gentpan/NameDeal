@@ -1,0 +1,11 @@
+{
+  "from_name": "域名销售",
+  "from_email": "noreply@example.com",
+  "default_to_email": "owner@example.com",
+  "smtp_enabled": true,
+  "smtp_host": "smtp.example.com",
+  "smtp_port": 587,
+  "smtp_encryption": "tls",
+  "smtp_username": "smtp-user",
+  "smtp_password": "REPLACE_ME"
+}

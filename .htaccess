@@ -1,0 +1,27 @@
+RewriteEngine On
+RewriteBase /
+
+# 处理域名查询路由: /域名 -> index.php?domain=域名
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_URI} ^/([a-zA-Z0-9][a-zA-Z0-9.-]{0,253}[a-zA-Z0-9]?)$
+RewriteRule ^([a-zA-Z0-9][a-zA-Z0-9.-]{0,253}[a-zA-Z0-9]?)$ index.php?domain=$1 [L,QSA]
+
+# 处理其他 PHP 文件
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME}.php -f
+RewriteRule ^([^/]+)/?$ $1.php [L]
+
+
+# Redirect legacy endpoints to whois.php
+# search.php -> whois.php page mode
+RewriteRule ^search\.php$ whois.php?mode=page [QSA,L]
+# api.php -> whois.php api mode
+RewriteRule ^api\.php$ whois.php?mode=api [QSA,L]
+# domain-lookup.php -> whois.php
+RewriteRule ^domain-lookup\.php$ whois.php [QSA,L]
+# query-handler.php -> whois.php
+RewriteRule ^query-handler\.php$ whois.php [QSA,L]
+
+
