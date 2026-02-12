@@ -6,98 +6,111 @@
 [![License](https://img.shields.io/badge/license-MIT-16A34A.svg?style=for-the-badge)](./LICENSE)
 [![Status](https://img.shields.io/badge/status-Production_Ready-111827.svg?style=for-the-badge)](https://github.com/gentpan/NameDeal)
 
-> 当前版本：`v1.1.0`  
-> 最后更新时间：`2026-02-13`
+> Version: `v1.1.0`  
+> Last Updated: `2026-02-13`
 
-一个轻量的 PHP 域名停放与询盘管理系统，支持：
+## 中文简介
+
+NameDeal 是一个轻量级 PHP 域名停放与询盘管理系统，支持：
 
 - 多域名配置与停放展示
 - 后台管理（域名、统计、邮件、站点设置）
 - 邮件验证码 + 询盘表单
 - SQLite 访问统计
 
-## 环境要求
+## English Overview
+
+NameDeal is a lightweight PHP domain parking and inquiry management system with:
+
+- Multi-domain parking and presentation
+- Admin panel (domains, stats, email, site settings)
+- Email verification code + inquiry form
+- SQLite-based visit statistics
+
+## 环境要求 / Requirements
 
 - PHP 8.1+
-- PDO SQLite 扩展
-- Web 服务器（Apache/Nginx）
+- PDO SQLite extension
+- Web server (Apache / Nginx)
 
-## 快速开始
+## 快速开始 / Quick Start
 
-1. 复制示例配置文件：
+1. 复制示例配置 / Copy example configs:
    - `data/site_settings.example.json` -> `data/site_settings.json`
    - `data/email_settings.example.json` -> `data/email_settings.json`
-2. 修改配置中的密码与 SMTP 参数。
-3. 启动服务并访问：
-   - 前台：`/index.php`
-   - 后台：`/admin.php`
+2. 修改密码与 SMTP 参数 / Update admin password and SMTP settings.
+3. 启动服务并访问 / Start service and open:
+   - Frontend: `/index.php`
+   - Admin: `/admin.php`
 
-## Nginx / Apache 静态化配置
+## Nginx / Apache 静态化配置 (Pseudo-static Routing)
 
-本项目支持“伪静态”路由，目标是：
+目标 / Goals:
 
-- `/admin`、`/admin/footer` 这类路径可直接访问
+- 支持 `/admin`、`/admin/footer` 等友好路径
 - 域名路径（如 `/example.com`）重写到 `index.php?domain=...`
-- 静态资源（`/assets/*`）走缓存，提高加载速度
+- 静态资源（`/assets/*`）启用缓存提升加载性能
 
-### Nginx（推荐）
+### Nginx (Recommended)
 
-仓库已提供完整示例：`nginx.conf.example`。  
-重点规则如下（可直接参考）：
+仓库提供完整示例：`nginx.conf.example`。
+
+Core rules:
 
 - `location / { try_files $uri $uri/ /index.php?$query_string; }`
 - `location = /admin { rewrite ^ /admin.php?$query_string last; }`
 - `location ~ ^/admin/(domains|stats|email|site|footer)/?$ { rewrite ... }`
 - `location ^~ /assets/ { expires 7d; add_header Cache-Control "public, max-age=604800"; }`
-- `location ^~ /data/ { deny all; }`、`location ^~ /core/ { deny all; }`
+- `location ^~ /data/ { deny all; }` and `location ^~ /core/ { deny all; }`
 
-建议做法：
+建议步骤 / Suggested steps:
 
-1. 复制 `nginx.conf.example` 到站点配置目录。
+1. 复制 `nginx.conf.example` 到站点配置。
 2. 修改 `server_name`、`root`、`fastcgi_pass`。
 3. 执行 `nginx -t` 后重载 Nginx。
 
-### Apache（.htaccess）
+### Apache (.htaccess)
 
-项目根目录已包含 `.htaccess`，核心逻辑：
+项目根目录包含 `.htaccess`，可实现：
 
-- 非真实文件/目录时，按规则重写到 `index.php` 或对应 `*.php`
-- 支持域名路径重写（`/domain.tld` -> `index.php?domain=domain.tld`）
+- 非真实文件/目录自动重写到 `index.php` 或对应 `*.php`
+- 域名路径重写（`/domain.tld` -> `index.php?domain=domain.tld`）
 - 兼容历史入口（如 `search.php`、`api.php`）
 
-启用要求：
+Enable requirements:
 
-1. 开启 `mod_rewrite`：`a2enmod rewrite`
-2. 站点目录允许覆盖：`AllowOverride All`
-3. 重载 Apache：`systemctl reload apache2`（或对应服务名）
+1. Enable `mod_rewrite`: `a2enmod rewrite`
+2. Allow overrides in vhost: `AllowOverride All`
+3. Reload Apache: `systemctl reload apache2`
 
-### 静态缓存建议
+### 缓存建议 / Cache Recommendations
 
-- CSS/JS/图片：`Cache-Control: public, max-age=604800`（7 天）
-- 频繁变更资源建议带版本号（如 `style.css?v=20260213`）避免缓存未更新
-- `data/`、`core/` 必须禁止 Web 直接访问
+- CSS/JS/images: `Cache-Control: public, max-age=604800` (7 days)
+- 频繁变更资源建议加版本号（如 `style.css?v=20260213`）
+- `data/` and `core/` must be blocked from direct web access
 
-## 最近更新（Changelog）
+## 更新记录 / Changelog
 
 ### 2026-02-13 · v1.1.0
 
-- 修复深色模式下邮件模板展示问题，并同步前后台相关更新。
-- 新增页脚图标固定尺寸规则，统一 SVG 与 Font Awesome 渲染尺寸。
-- 新增 Nginx/Apache 静态化与伪静态配置说明，补充缓存与安全建议。
+- 修复深色模式邮件模板显示，并同步前后台更新。
+- 修复页脚图标尺寸与 SVG/Font Awesome 悬浮变色一致性。
+- 升级 Font Awesome CDN 到 `7.2.0`。
+- 新增 Nginx/Apache 静态化配置说明与缓存建议。
 
 ### 2026-02-12 · v1.0.0
 
-- 完成开源基线整理：项目更名为 NameDeal，清理并统一 GitHub 仓库链接。
-- 加固后台安全能力（密码哈希、CSRF 等基础防护）。
-- 提供多域名停放、询盘表单、邮箱验证码与后台管理基础功能。
+- 完成开源基线整理：项目更名为 NameDeal，统一仓库链接。
+- 加固后台安全（密码哈希、CSRF 防护等）。
+- 提供域名停放、询盘表单、邮箱验证码与后台管理功能。
 
-## 安全说明
+## 安全说明 / Security
 
-- 后台密码已使用 `password_hash()` 存储。
+- 后台密码使用 `password_hash()` 存储。
 - 后台 POST 操作启用了 CSRF 防护。
 - `data/` 目录通过 `.htaccess` 禁止 Web 访问。
-- 开源前请务必轮换所有现有密码、SMTP 凭据与邮箱账号。
+- 开源前请务必轮换现有密码、SMTP 凭据与邮箱账号。
 
-## 许可证
+## 许可证 / License
 
-建议使用 MIT License（可按你的开源策略调整）。
+MIT License (recommended).
