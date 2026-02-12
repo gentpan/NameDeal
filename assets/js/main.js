@@ -11,7 +11,7 @@
         const decoded = atob(cpData);
         if (!decoded || decoded.length < 10) return false;
         if (!decoded.includes('西风') && !decoded.includes('Powered by')) return false;
-        if (!decoded.includes('github.com/gentpan/domainparking')) return false;
+        if (!decoded.includes('github.com/gentpan/namedeal')) return false;
         return true;
       } catch(e) { return false; }
     } catch(e) { return false; }
@@ -21,8 +21,8 @@
   function showCopyright() {
     console.log('%cPowered by 西风', 'color: #FFD700; font-weight: bold; font-size: 14px; background: #000000; padding: 4px 8px;');
     console.log('%c🔗 https://xifeng.net', 'color: #FFD700; font-size: 12px; background: #000000; padding: 2px 6px;');
-    console.log('%cGitHub: github.com/gentpan/domainparking', 'color: #FFD700; font-size: 12px; background: #000000; padding: 2px 6px;');
-    console.log('%c🔗 https://github.com/gentpan/domainparking', 'color: #FFD700; font-size: 12px; background: #000000; padding: 2px 6px;');
+    console.log('%cGitHub: github.com/gentpan/namedeal', 'color: #FFD700; font-size: 12px; background: #000000; padding: 2px 6px;');
+    console.log('%c🔗 https://github.com/gentpan/namedeal', 'color: #FFD700; font-size: 12px; background: #000000; padding: 2px 6px;');
     console.log('%c© ' + new Date().getFullYear() + ' 保留所有权利', 'color: #FFD700; font-size: 11px; background: #000000; padding: 2px 6px;');
   }
   
