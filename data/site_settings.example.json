@@ -1,5 +1,23 @@
 {
   "admin_password_hash": "$2y$10$REPLACE_WITH_BCRYPT_HASH",
-  "site_name": "DOMAIN.LS",
-  "site_description": "域名出售平台"
+  "site_name": "NameDeal 域名停放",
+  "site_description": "域名出售平台",
+  "footer_links": [
+    {
+      "name": "WHOIS查询",
+      "url": "https://bluewhois.com/{domain}",
+      "icon_class": "fa-solid fa-magnifying-glass"
+    },
+    {
+      "name": "西风",
+      "url": "https://xifeng.net",
+      "icon_class": "fa-solid fa-wind"
+    },
+    {
+      "name": "更多域名",
+      "url": "https://domain.ls",
+      "icon_class": "fa-solid fa-globe"
+    }
+  ],
+  "footer_analytics_code": ""
 }

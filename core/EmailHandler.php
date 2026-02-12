@@ -173,11 +173,32 @@ class EmailTemplates
 {
     private $domainConfig;
     private $themeColor;
+    private $defaultToEmail = '';
+    private $fixedMailBlue = '#0066FC';
 
     public function __construct($domainConfig)
     {
         $this->domainConfig = $domainConfig;
         $this->themeColor = $domainConfig->get('theme_color', '#0066FC');
+        $settings = $this->readJsonFile(__DIR__ . '/../data/email_settings.json');
+        $configuredTo = trim((string)($settings['default_to_email'] ?? ''));
+        if ($configuredTo !== '' && filter_var($configuredTo, FILTER_VALIDATE_EMAIL)) {
+            $this->defaultToEmail = $configuredTo;
+        }
+    }
+
+    private function readJsonFile($file, $default = [])
+    {
+        if (file_exists($file)) {
+            return json_decode(file_get_contents($file), true) ?: $default;
+        }
+        return $default;
+    }
+
+    private function normalizeSiteName($siteName)
+    {
+        $clean = trim(str_replace('域名停放', '', (string)$siteName));
+        return $clean !== '' ? $clean : 'NameDeal';
     }
 
     /**
@@ -185,16 +206,20 @@ class EmailTemplates
      */
     private function getLogoHtml($primaryColor)
     {
-        // 确保颜色值被正确转义
-        $primaryColorEscaped = htmlspecialchars($primaryColor, ENT_QUOTES, 'UTF-8');
-        return '<div class="logo" style="display: inline-block; width: 80px; height: 80px; line-height: 0;">
-            <svg viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: 100%; display: block;">
-                <path d="M663.04 80H156.16A92.16 92.16 0 0 0 64 172.16v506.88a92.16 92.16 0 0 0 92.16 92.16h506.88a92.16 92.16 0 0 0 92.16-92.16V172.16A92.16 92.16 0 0 0 663.04 80z" fill="' . $primaryColorEscaped . '"></path>
-                <path d="M855.04 272H348.16A92.16 92.16 0 0 0 256 364.16v506.88a92.16 92.16 0 0 0 92.16 92.16h506.88a92.16 92.16 0 0 0 92.16-92.16V364.16A92.16 92.16 0 0 0 855.04 272z" fill="' . $primaryColorEscaped . '" opacity=".4"></path>
-                <path d="M348.16 280h506.88a84.16 84.16 0 0 1 84.16 84.16v506.88a84.16 84.16 0 0 1-84.16 84.16H348.16a84.16 84.16 0 0 1-84.16-84.16V364.16a84.16 84.16 0 0 1 84.16-84.16z m607.04 84.16a100.16 100.16 0 0 0-100.16-100.16H348.16a100.16 100.16 0 0 0-100.16 100.16v506.88a100.16 100.16 0 0 0 100.16 100.16h506.88a100.16 100.16 0 0 0 100.16-100.16V364.16z" fill="' . $primaryColorEscaped . '" opacity=".2"></path>
-                <path d="M754.688 755.36H461.312a6.32 6.32 0 0 0-4.384 10.96C495.248 806.816 548.88 832 608 832c59.12 0 113.856-25.184 151.072-65.68a6.32 6.32 0 0 0-4.384-10.944zM443.792 514.544h328.416c5.472 0 8.752-6.56 5.472-10.944A208.32 208.32 0 0 0 608 416a208.32 208.32 0 0 0-169.68 87.584c-3.296 4.368 0 10.944 5.472 10.944z m328.416 32.848H443.792A43.92 43.92 0 0 0 400 591.152v87.584a43.92 43.92 0 0 0 43.792 43.792h328.416A43.92 43.92 0 0 0 816 678.72v-87.584a43.92 43.92 0 0 0-43.792-43.776z m-224.416 59.104l-16.416 72.256c-2.192 6.56-6.576 8.752-13.152 8.752-6.56 0-10.944-3.28-13.12-8.752l-15.344-50.352-15.312 50.352c-2.192 5.472-6.56 8.752-13.136 8.752s-10.96-3.28-13.152-8.752l-16.416-72.256v-4.368c1.104-5.488 3.28-8.768 8.768-8.768 5.472 0 9.84 3.28 10.944 9.856l10.944 55.84 16.416-56.928c2.192-4.384 5.472-7.68 9.856-7.68 5.472 0 8.752 2.192 9.856 7.68l16.416 56.928 10.944-55.84c1.104-6.56 4.384-9.856 9.856-9.856 5.472 0 8.768 3.28 8.768 8.768 3.28 1.088 3.28 3.28 3.28 4.368z m118.24 0L649.6 678.736c-2.192 6.56-6.56 8.752-13.136 8.752-6.56 0-10.944-3.28-13.136-8.752L608 628.384l-15.328 50.352c-2.192 5.472-6.56 8.752-13.136 8.752-6.56 0-10.944-3.28-13.136-8.752l-16.416-72.256v-4.368c1.088-5.488 3.28-8.768 8.752-8.768 5.472 0 9.856 3.28 10.944 9.856l10.944 55.84 16.432-56.928c2.192-4.384 5.472-7.68 9.856-7.68 5.472 0 8.752 2.192 9.84 7.68l16.432 56.928 10.944-55.84c1.088-6.56 4.384-9.856 9.856-9.856 5.472 0 8.752 3.28 8.752 8.768 4.384 1.088 4.384 3.28 3.28 4.368z m119.312 0l-16.416 72.256c-2.192 6.56-6.56 8.752-13.136 8.752-6.56 0-10.944-3.28-13.136-8.752l-15.328-50.352-15.328 50.352c-2.192 5.472-6.56 8.752-13.136 8.752-6.56 0-10.944-3.28-13.136-8.752l-16.416-72.256v-4.368c1.088-5.488 3.28-8.768 8.752-8.768 5.472 0 9.856 3.28 10.944 9.856l10.944 55.84 16.432-56.928c2.176-4.384 5.472-7.68 9.84-7.68 5.488 0 8.768 2.192 9.856 7.68l16.432 56.928 10.944-55.84c1.088-6.56 4.368-9.856 9.856-9.856 5.472 0 8.752 3.28 8.752 8.768 4.384 1.088 3.28 3.28 3.28 4.368z" fill="#FFFFFF"></path>
-            </svg>
-        </div>';
+        $domain = $this->domainConfig->getCurrentDomain();
+        $scheme = 'https';
+        if (!empty($_SERVER['HTTP_X_FORWARDED_PROTO'])) {
+            $scheme = strtolower(trim(explode(',', (string)$_SERVER['HTTP_X_FORWARDED_PROTO'])[0])) === 'http' ? 'http' : 'https';
+        } elseif (!empty($_SERVER['REQUEST_SCHEME'])) {
+            $scheme = strtolower((string)$_SERVER['REQUEST_SCHEME']) === 'http' ? 'http' : 'https';
+        } elseif (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
+            $scheme = 'https';
+        } elseif (!empty($_SERVER['SERVER_PORT']) && (string)$_SERVER['SERVER_PORT'] === '80') {
+            $scheme = 'http';
+        }
+
+        $logoUrl = htmlspecialchars($scheme . '://' . $domain . '/assets/images/logo.png', ENT_QUOTES, 'UTF-8');
+        return '<img src="' . $logoUrl . '" alt="Logo" width="80" height="80" style="display:block; width:80px; height:80px; border-radius:14px; object-fit:contain; border:0; outline:none; text-decoration:none;">';
     }
 
     /**
@@ -204,23 +229,88 @@ class EmailTemplates
     {
         return '.logo { display: inline-block; width: 100%; height: 100%; }
             .logo svg { width: 100%; height: 100%; display: block; }
+            .header-main { table-layout: fixed; }
+            .header-logo-cell { width: 88px; font-size: 0; line-height: 0; text-align: right; padding-right: 8px; }
+            .header-logo-wrap { width: 80px; height: 80px; display: inline-block; vertical-align: middle; }
+            .email-container { width: 100% !important; }
+            .brand-divider { background-color: ' . $primaryColor . ' !important; }
+            .email-title, .email-heading { color: #1a1a1a; }
+            .email-text { color: #666666; }
+            .email-muted { color: #666666; }
+            .email-value { color: #1a1a1a; }
+            .email-accent { color: ' . $primaryColor . '; }
+            a.email-link { color: ' . $primaryColor . '; text-decoration: none; }
+            .email-list li { color: #666666; }
+            .email-footer-separator { color: #cccccc; }
+            @media only screen and (max-width: 640px) {
+                .email-wrapper { padding: 16px 10px !important; }
+                .email-header { padding: 24px 20px 20px !important; }
+                .email-content { padding: 24px 20px !important; }
+                .email-footer { padding: 20px !important; }
+                .mobile-title { font-size: 24px !important; line-height: 1.3 !important; padding-right: 8px !important; }
+                .mobile-price { font-size: 28px !important; }
+                .header-logo-cell { width: 64px !important; text-align: right !important; padding-right: 6px !important; }
+                .header-logo-wrap { width: 56px !important; height: 56px !important; }
+                .mobile-stack,
+                .mobile-stack tbody,
+                .mobile-stack tr,
+                .mobile-stack td,
+                .mobile-stack-cell {
+                    display: block !important;
+                    width: 100% !important;
+                }
+                .mobile-gap {
+                    display: none !important;
+                    width: 0 !important;
+                    padding: 0 !important;
+                }
+            }
             @media (prefers-color-scheme: dark) {
-                body { background-color: #0a0a0a !important; }
-                .email-wrapper { background-color: #0a0a0a !important; }
-                .email-container { background-color: #1a1a1a !important; color: #ffffff !important; }
-                .email-header { background-color: ' . $primaryColor . ' !important; }
-                .email-content { background-color: #2a2a2a !important; border-color: #3a3a3a !important; }
-                .code-box, .info-card, .info-row { background-color: #1a1a1a !important; border-color: #3a3a3a !important; color: #ffffff !important; }
-                .info-highlight { background-color: #1a3a7a !important; }
-                .price-highlight { background-color: #1a3a7a !important; }
-                .text-secondary { color: #b0b0b0 !important; }
-                .footer-text { color: #808080 !important; }
-                .email-footer { background-color: #1a1a1a !important; border-color: #3a3a3a !important; }
-                h1, h2, h3 { color: #ffffff !important; }
-                p, div { color: #d0d0d0 !important; }
-                ul li { color: #b0b0b0 !important; }
-                a { color: ' . $primaryColor . ' !important; }
-            }';
+                html { background-color: #000000 !important; }
+                body, .email-body { background-color: #000000 !important; }
+                .email-wrapper { background-color: #000000 !important; }
+                table.email-container, .email-container { background-color: #0b0b0b !important; color: #f5f5f5 !important; }
+                .email-container { background-color: #0b0b0b !important; color: #f5f5f5 !important; }
+                td.email-header, .email-header { background-color: #0b0b0b !important; }
+                td.email-content, .email-content { background-color: #0f0f0f !important; border-color: #222222 !important; }
+                .code-box, .info-card, .info-row, td.info-row { background-color: #151515 !important; border-color: #2a2a2a !important; color: #f5f5f5 !important; }
+                .info-highlight { background-color: #121212 !important; }
+                td.price-highlight, .price-highlight { background-color: #101010 !important; }
+                .text-secondary { color: #b8b8b8 !important; }
+                .footer-text { color: #9a9a9a !important; }
+                td.email-footer, .email-footer { background-color: #0a0a0a !important; border-color: #222222 !important; }
+                .email-title, .email-heading { color: #f5f5f5 !important; }
+                .email-text { color: #dddddd !important; }
+                .email-muted { color: #b8b8b8 !important; }
+                .email-value { color: #f5f5f5 !important; }
+                .email-list li { color: #d2d2d2 !important; }
+                .email-footer-separator { color: #666666 !important; }
+                .email-header h1, .email-content h2, .email-content h3 { color: #f5f5f5 !important; }
+                .email-content p, .email-content div, .email-content span, .email-content li { color: #dddddd !important; }
+                .email-accent { color: ' . $primaryColor . ' !important; }
+                a, a.email-link { color: ' . $primaryColor . ' !important; text-decoration: none !important; }
+                strong { color: ' . $primaryColor . ' !important; }
+            }
+            /* Outlook/部分移动端邮件客户端深色模式 */
+            [data-ogsc] body, [data-ogsb] body, [data-ogsc] .email-body, [data-ogsb] .email-body { background-color: #000000 !important; }
+            [data-ogsc] .email-wrapper, [data-ogsb] .email-wrapper { background-color: #000000 !important; }
+            [data-ogsc] table.email-container, [data-ogsb] table.email-container, [data-ogsc] .email-container, [data-ogsb] .email-container { background-color: #0b0b0b !important; color: #f5f5f5 !important; }
+            [data-ogsc] td.email-header, [data-ogsb] td.email-header, [data-ogsc] .email-header, [data-ogsb] .email-header { background-color: #0b0b0b !important; }
+            [data-ogsc] td.email-content, [data-ogsb] td.email-content, [data-ogsc] .email-content, [data-ogsb] .email-content { background-color: #0f0f0f !important; border-color: #222222 !important; }
+            [data-ogsc] .info-card, [data-ogsb] .info-card, [data-ogsc] .info-row, [data-ogsb] .info-row, [data-ogsc] td.info-row, [data-ogsb] td.info-row, [data-ogsc] .code-box, [data-ogsb] .code-box { background-color: #151515 !important; border-color: #2a2a2a !important; color: #f5f5f5 !important; }
+            [data-ogsc] .info-highlight, [data-ogsb] .info-highlight { background-color: #121212 !important; }
+            [data-ogsc] td.price-highlight, [data-ogsb] td.price-highlight, [data-ogsc] .price-highlight, [data-ogsb] .price-highlight { background-color: #101010 !important; }
+            [data-ogsc] td.email-footer, [data-ogsb] td.email-footer, [data-ogsc] .email-footer, [data-ogsb] .email-footer { background-color: #0a0a0a !important; border-color: #222222 !important; }
+            [data-ogsc] .email-title, [data-ogsb] .email-title, [data-ogsc] .email-heading, [data-ogsb] .email-heading { color: #f5f5f5 !important; }
+            [data-ogsc] .email-text, [data-ogsb] .email-text { color: #dddddd !important; }
+            [data-ogsc] .email-muted, [data-ogsb] .email-muted { color: #b8b8b8 !important; }
+            [data-ogsc] .email-list li, [data-ogsb] .email-list li { color: #d2d2d2 !important; }
+            [data-ogsc] .text-secondary, [data-ogsb] .text-secondary { color: #b8b8b8 !important; }
+            [data-ogsc] .footer-text, [data-ogsb] .footer-text { color: #9a9a9a !important; }
+            [data-ogsc] .email-value, [data-ogsb] .email-value { color: #f5f5f5 !important; }
+            [data-ogsc] .email-accent, [data-ogsb] .email-accent { color: ' . $primaryColor . ' !important; }
+            [data-ogsc] .brand-divider, [data-ogsb] .brand-divider { background-color: ' . $primaryColor . ' !important; }
+            [data-ogsc] a, [data-ogsb] a, [data-ogsc] a.email-link, [data-ogsb] a.email-link { color: ' . $primaryColor . ' !important; text-decoration: none !important; }';
     }
 
     /**
@@ -228,55 +318,89 @@ class EmailTemplates
      */
     private function getFooterHtml($domain, $primaryColor, $siteName)
     {
-        $domainLower = htmlspecialchars(strtolower($domain));
+        $domainLowerRaw = strtolower((string)$domain);
+        $domainLower = htmlspecialchars($domainLowerRaw, ENT_QUOTES, 'UTF-8');
+        $siteNameClean = htmlspecialchars($this->normalizeSiteName($siteName), ENT_QUOTES, 'UTF-8');
+        $fixedBlue = $this->fixedMailBlue;
+        $contactEmailRaw = $this->defaultToEmail !== '' ? $this->defaultToEmail : ('info@' . $domainLowerRaw);
+        $contactEmail = htmlspecialchars($contactEmailRaw, ENT_QUOTES, 'UTF-8');
         return '<tr>
             <td class="email-footer" style="padding: 30px 40px; text-align: center; background-color: #f8f9fa; border-top: 1px solid #e0e0e0;">
                 <p style="margin: 0 0 12px; color: #999999; font-size: 12px; line-height: 1.6;" class="footer-text">
                     本邮件为系统自动发送，请勿直接回复。如需帮助或反馈，请通过以下方式联系我们：
                 </p>
                 <p style="margin: 0 0 8px; color: #666666; font-size: 12px;" class="footer-text">
-                    <a href="mailto:info@' . $domainLower . '" style="color: ' . $primaryColor . '; text-decoration: none; font-weight: 500;">info@' . $domainLower . '</a>
-                    <span style="color: #cccccc; margin: 0 8px;">|</span>
-                    <a href="https://' . $domainLower . '/#contact" style="color: ' . $primaryColor . '; text-decoration: none; font-weight: 500;">联系我们</a>
+                    <a href="mailto:' . $contactEmail . '" style="color: ' . $fixedBlue . '; text-decoration: none !important; font-weight: 500;">' . $contactEmail . '</a>
+                    <span class="email-footer-separator" style="color: #cccccc; margin: 0 8px;">|</span>
+                    <a href="https://' . $domainLower . '/#contact" style="color: ' . $fixedBlue . '; text-decoration: none !important; font-weight: 500;">联系我们</a>
                 </p>
                 <p style="margin: 0; color: #999999; font-size: 11px;" class="footer-text">
-                    ' . date('Y') . ' © ' . htmlspecialchars($siteName) . ' 域名列表 | 保留所有权利
+                    ' . date('Y') . ' © ' . $siteNameClean . ' | 保留所有权利
                 </p>
             </td>
         </tr>';
     }
 
     /**
-     * 获取验证码邮件模板（简单模式）
+     * 获取验证码邮件模板
      * @param string $code 验证码
      * @return string HTML邮件内容
      */
     public function getVerificationCodeTemplate($code)
     {
         $domain = $this->domainConfig->getCurrentDomain();
-        
+        $domainEscaped = htmlspecialchars($domain, ENT_QUOTES, 'UTF-8');
+        $primaryColor = $this->fixedMailBlue;
+        $siteName = $this->normalizeSiteName($this->domainConfig->get('site_name', 'NameDeal'));
+        $darkStyles = $this->getDarkModeStyles($primaryColor);
+        $logo = $this->getLogoHtml($primaryColor);
+        $footer = $this->getFooterHtml($domain, $primaryColor, $siteName);
+        $codeEscaped = htmlspecialchars($code, ENT_QUOTES, 'UTF-8');
+
         return '<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light dark">
+    <meta name="supported-color-schemes" content="light dark">
     <title>验证码</title>
+    <style>' . $darkStyles . '</style>
 </head>
-<body style="margin: 0; padding: 20px; font-family: Arial, sans-serif; background-color: #f5f5f5;">
-    <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 40px; border-radius: 8px;">
-        <h2 style="margin: 0 0 20px; color: #333333; font-size: 24px;">验证码</h2>
-        <p style="margin: 0 0 30px; color: #666666; font-size: 16px; line-height: 1.6;">
-            您正在申请购买域名 <strong>' . htmlspecialchars($domain) . '</strong>，请在验证码输入框中输入以下验证码：
-        </p>
-        <div style="text-align: center; padding: 30px 0;">
-            <div style="display: inline-block; padding: 20px 40px; background-color: #f8f9fa; border: 2px dashed #0066FC; border-radius: 8px;">
-                <div style="font-size: 36px; font-weight: bold; color: #0066FC; letter-spacing: 8px; font-family: monospace;">' . htmlspecialchars($code) . '</div>
-            </div>
-        </div>
-        <p style="margin: 30px 0 0; color: #999999; font-size: 14px; line-height: 1.6;">
-            验证码有效期为 60 秒，请尽快使用。如非本人操作，请忽略此邮件。
-        </p>
-    </div>
+<body class="email-body" style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, \'SF Pro Display\', \'Segoe UI\', \'PingFang SC\', \'Hiragino Sans GB\', sans-serif; background-color: #f5f5f5;">
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" class="email-wrapper" style="background-color: #f5f5f5; padding: 40px 20px;">
+        <tr>
+            <td align="center">
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" class="email-container" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 12px; overflow: hidden;">
+                    <tr>
+                        <td class="email-header" style="padding: 40px 40px 30px; background-color: #ffffff;">
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" class="header-main">
+                                <tr>
+                                    <td class="header-title-cell" style="vertical-align: middle; padding-right: 12px;"><h1 class="mobile-title email-title" style="margin: 0; color: #1a1a1a; font-size: 28px; font-weight: 700; letter-spacing: -0.5px;">验证码</h1></td>
+                                    <td class="header-logo-cell" width="88" style="width: 88px; min-width: 88px; max-width: 88px; vertical-align: middle; text-align: right; padding-right: 8px;"><div class="header-logo-wrap">' . $logo . '</div></td>
+                                </tr>
+                            </table>
+                            <div class="brand-divider" style="margin-top: 30px; height: 3px; background-color: ' . $primaryColor . '; border-radius: 2px;"></div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="email-content" style="padding: 40px; background-color: #ffffff; border: none;">
+                            <p class="email-text" style="margin: 0 0 24px; color: #666666; font-size: 16px; line-height: 1.7;">
+                                您正在申请购买域名 <a class="email-link email-accent" href="https://' . $domainEscaped . '" style="color: ' . $primaryColor . '; text-decoration: none !important; font-weight: 700;">' . $domainEscaped . '</a>，请在验证码输入框中输入以下验证码：
+                            </p>
+                            <div class="code-box" style="margin: 0 auto; text-align: center; padding: 24px; background-color: #f8f9fa; border: 2px dashed ' . $primaryColor . '; border-radius: 10px;">
+                                <div class="email-accent" style="font-size: 36px; font-weight: 700; color: ' . $primaryColor . '; letter-spacing: 8px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, \'Liberation Mono\', \'Courier New\', monospace;">' . $codeEscaped . '</div>
+                            </div>
+                            <p class="email-muted" style="margin: 24px 0 0; color: #999999; font-size: 14px; line-height: 1.6;">
+                                验证码有效期为 60 秒，请尽快使用。如非本人操作，请忽略此邮件。
+                            </p>
+                        </td>
+                    </tr>
+                    ' . $footer . '
+                </table>
+            </td>
+        </tr>
+    </table>
 </body>
 </html>';
     }
@@ -289,9 +413,11 @@ class EmailTemplates
     public function getConfirmationTemplate($formData)
     {
         $domain = $this->domainConfig->getCurrentDomain();
-        $primaryColor = $this->themeColor;
-        $siteName = $this->domainConfig->get('site_name', 'DOMAIN.LS');
+        $primaryColor = $this->fixedMailBlue;
+        $siteName = $this->normalizeSiteName($this->domainConfig->get('site_name', 'NameDeal'));
         $name = htmlspecialchars($formData['name']);
+        $domainEscaped = htmlspecialchars($domain, ENT_QUOTES, 'UTF-8');
+        $domainAnchor = '<a href="https://' . $domainEscaped . '" style="color: ' . $primaryColor . '; text-decoration: none !important; font-weight: 700;">' . $domainEscaped . '</a>';
         $offerPrice = !empty($formData['offer_price']) && $formData['offer_price'] > 0 
             ? '¥' . number_format($formData['offer_price'], 2) 
             : '未提供';
@@ -305,54 +431,52 @@ class EmailTemplates
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="light dark">
+    <meta name="supported-color-schemes" content="light dark">
     <title>购买咨询确认</title>
     <style>' . $darkStyles . '</style>
 </head>
-<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, \'SF Pro Display\', \'Segoe UI\', \'PingFang SC\', \'Hiragino Sans GB\', sans-serif; background-color: #f5f5f5;">
+<body class="email-body" style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, \'SF Pro Display\', \'Segoe UI\', \'PingFang SC\', \'Hiragino Sans GB\', sans-serif; background-color: #f5f5f5;">
     <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" class="email-wrapper" style="background-color: #f5f5f5; padding: 40px 20px;">
         <tr>
             <td align="center">
                 <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" class="email-container" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 12px; overflow: hidden;">
                     <tr>
                         <td class="email-header" style="padding: 40px 40px 30px; background-color: #ffffff;">
-                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" class="header-main">
                                 <tr>
-                                    <td style="vertical-align: middle;"><h1 style="margin: 0; color: #1a1a1a; font-size: 28px; font-weight: 700; letter-spacing: -0.5px;">购买咨询已收到</h1></td>
-                                    <td style="vertical-align: middle; text-align: right;"><div style="width: 80px; height: 80px; display: inline-block;">' . $logo . '</div></td>
+                                    <td class="header-title-cell" style="vertical-align: middle; padding-right: 12px;"><h1 class="mobile-title email-title" style="margin: 0; color: #1a1a1a; font-size: 28px; font-weight: 700; letter-spacing: -0.5px;">购买咨询已收到</h1></td>
+                                    <td class="header-logo-cell" width="88" style="width: 88px; min-width: 88px; max-width: 88px; vertical-align: middle; text-align: right; padding-right: 8px;"><div class="header-logo-wrap">' . $logo . '</div></td>
                                 </tr>
                             </table>
-                            <div style="margin-top: 30px; height: 3px; background-color: ' . $primaryColor . '; border-radius: 2px;"></div>
+                            <div class="brand-divider" style="margin-top: 30px; height: 3px; background-color: ' . $primaryColor . '; border-radius: 2px;"></div>
                         </td>
                     </tr>
                     <tr>
-                        <td class="email-content" style="padding: 40px; background-color: #ffffff; border: 1px solid #e0e0e0; border-top: none;">
-                            <h2 style="margin: 0 0 20px; color: #1a1a1a; font-size: 20px; font-weight: 600;">尊敬的 ' . $name . '，</h2>
-                            <p style="margin: 0 0 24px; color: #666666; font-size: 16px; line-height: 1.6;" class="text-secondary">
-                                感谢您对域名 <strong style="color: ' . $primaryColor . ';">' . htmlspecialchars($domain) . '</strong> 的关注和购买咨询。我们已经收到您的信息，我们的团队将在 <strong style="color: ' . $primaryColor . ';">24小时内</strong> 与您取得联系。
+                        <td class="email-content" style="padding: 40px; background-color: #ffffff; border: none;">
+                            <h2 class="email-heading" style="margin: 0 0 20px; color: #1a1a1a; font-size: 20px; font-weight: 600;">尊敬的 ' . $name . '，</h2>
+                            <p class="text-secondary email-text" style="margin: 0 0 24px; color: #666666; font-size: 16px; line-height: 1.6;">
+                                感谢您对域名 ' . $domainAnchor . ' 的关注和购买咨询。我们已经收到您的信息，我们的团队将在 <strong style="color: ' . $primaryColor . ';">24小时内</strong> 与您取得联系。
                             </p>
                             <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 24px 0;">
-                                <tr><td><div class="info-card" style="padding: 20px; background-color: #f8f9fa; border-left: 4px solid ' . $primaryColor . '; border-radius: 8px; margin-bottom: 16px;">
-                                    <div style="font-size: 14px; color: #666666; margin-bottom: 8px;" class="text-secondary">咨询域名</div>
-                                    <div style="font-size: 18px; font-weight: 600; color: ' . $primaryColor . ';">' . htmlspecialchars($domain) . '</div>
+                                <tr><td><div class="info-card" style="padding: 20px; background-color: #f8f9fa; border-radius: 8px; margin-bottom: 16px;">
+                                    <div class="text-secondary email-muted" style="font-size: 14px; color: #666666; margin-bottom: 8px;">咨询域名</div>
+                                    <div class="email-accent" style="font-size: 18px; font-weight: 600; color: ' . $primaryColor . ';">' . $domainAnchor . '</div>
                                 </div></td></tr>
-                                <tr><td><div class="info-card" style="padding: 20px; background-color: #f8f9fa; border-left: 4px solid ' . $primaryColor . '; border-radius: 8px; margin-bottom: 16px;">
-                                    <div style="font-size: 14px; color: #666666; margin-bottom: 8px;" class="text-secondary">您的出价</div>
-                                    <div style="font-size: 18px; font-weight: 600; color: ' . $primaryColor . ';">' . $offerPrice . '</div>
+                                <tr><td><div class="info-card" style="padding: 20px; background-color: #f8f9fa; border-radius: 8px; margin-bottom: 16px;">
+                                    <div class="text-secondary email-muted" style="font-size: 14px; color: #666666; margin-bottom: 8px;">您的出价</div>
+                                    <div class="email-accent" style="font-size: 18px; font-weight: 600; color: ' . $primaryColor . ';">' . $offerPrice . '</div>
                                 </div></td></tr>
                             </table>
                             <div class="info-highlight" style="padding: 24px; background-color: #f0f7ff; border-radius: 8px; margin: 24px 0;">
-                                <h3 style="margin: 0 0 16px; color: ' . $primaryColor . '; font-size: 18px; font-weight: 600; display: flex; align-items: center;">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="' . $primaryColor . '" stroke-width="2" style="margin-right: 8px; flex-shrink: 0;"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-                                    <span>接下来会发生什么？</span>
-                                </h3>
-                                <ul style="margin: 0; padding-left: 28px; color: #666666; font-size: 14px; line-height: 1.8;" class="text-secondary">
+                                <h3 class="email-heading" style="margin: 0 0 16px; color: ' . $primaryColor . '; font-size: 18px; font-weight: 600;">接下来会发生什么？</h3>
+                                <ul class="text-secondary email-list" style="margin: 0; padding-left: 28px; color: #666666; font-size: 14px; line-height: 1.8;">
                                     <li style="margin-bottom: 8px;">我们的专业团队会仔细评估您的出价</li>
                                     <li style="margin-bottom: 8px;">在24小时内，我们会通过邮件或电话与您联系</li>
                                     <li style="margin-bottom: 8px;">我们将为您提供详细的交易流程和后续步骤</li>
                                     <li>如有任何疑问，您可以随时联系我们</li>
                                 </ul>
                             </div>
-                            <p style="margin: 24px 0 0; color: #666666; font-size: 14px; line-height: 1.6;" class="text-secondary">再次感谢您对我们的信任，期待与您的合作！</p>
+                            <p class="text-secondary email-text" style="margin: 24px 0 0; color: #666666; font-size: 14px; line-height: 1.6;">再次感谢您对我们的信任，期待与您的合作！</p>
                         </td>
                     </tr>
                     ' . $footer . '
@@ -372,10 +496,12 @@ class EmailTemplates
     public function getAdminNotificationTemplate($formData)
     {
         $domain = $this->domainConfig->getCurrentDomain();
-        $primaryColor = $this->themeColor;
-        $siteName = $this->domainConfig->get('site_name', 'DOMAIN.LS');
+        $primaryColor = $this->fixedMailBlue;
+        $siteName = $this->normalizeSiteName($this->domainConfig->get('site_name', 'NameDeal'));
         $name = htmlspecialchars($formData['name']);
         $email = htmlspecialchars($formData['email']);
+        $domainEscaped = htmlspecialchars($domain, ENT_QUOTES, 'UTF-8');
+        $domainAnchor = '<a href="https://' . $domainEscaped . '" style="color: ' . $primaryColor . '; text-decoration: none !important; font-weight: 700;">' . $domainEscaped . '</a>';
         $message = nl2br(htmlspecialchars($formData['message']));
         $offerPrice = !empty($formData['offer_price']) && $formData['offer_price'] > 0 
             ? '¥' . number_format($formData['offer_price'], 2) 
@@ -390,58 +516,66 @@ class EmailTemplates
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="light dark">
+    <meta name="supported-color-schemes" content="light dark">
     <title>新的购买咨询</title>
     <style>' . $darkStyles . '</style>
 </head>
-<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, \'SF Pro Display\', \'Segoe UI\', \'PingFang SC\', \'Hiragino Sans GB\', sans-serif; background-color: #f5f5f5;">
+<body class="email-body" style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, \'SF Pro Display\', \'Segoe UI\', \'PingFang SC\', \'Hiragino Sans GB\', sans-serif; background-color: #f5f5f5;">
     <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" class="email-wrapper" style="background-color: #f5f5f5; padding: 40px 20px;">
         <tr>
             <td align="center">
                 <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" class="email-container" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 12px; overflow: hidden;">
                     <tr>
                         <td class="email-header" style="padding: 40px 40px 30px; background-color: #ffffff;">
-                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" class="header-main">
                                 <tr>
-                                    <td style="vertical-align: middle;"><h1 style="margin: 0; color: #1a1a1a; font-size: 28px; font-weight: 700; letter-spacing: -0.5px;">新的购买咨询</h1></td>
-                                    <td style="vertical-align: middle; text-align: right;"><div style="width: 80px; height: 80px; display: inline-block;">' . $logo . '</div></td>
+                                    <td class="header-title-cell" style="vertical-align: middle; padding-right: 12px;"><h1 class="mobile-title email-title" style="margin: 0; color: #1a1a1a; font-size: 28px; font-weight: 700; letter-spacing: -0.5px;">新的购买咨询</h1></td>
+                                    <td class="header-logo-cell" width="88" style="width: 88px; min-width: 88px; max-width: 88px; vertical-align: middle; text-align: right; padding-right: 8px;"><div class="header-logo-wrap">' . $logo . '</div></td>
                                 </tr>
                             </table>
-                            <div style="margin-top: 30px; height: 3px; background-color: ' . $primaryColor . '; border-radius: 2px;"></div>
+                            <div class="brand-divider" style="margin-top: 30px; height: 3px; background-color: ' . $primaryColor . '; border-radius: 2px;"></div>
                         </td>
                     </tr>
                     <tr>
                         <td class="price-highlight" style="padding: 24px 40px; background-color: #e6f0ff; text-align: center;">
-                            <div style="font-size: 14px; color: #666666; margin-bottom: 8px;" class="text-secondary">客户出价</div>
-                            <div style="font-size: 32px; font-weight: 700; color: ' . $primaryColor . ';">' . $offerPrice . '</div>
+                            <div class="text-secondary email-muted" style="font-size: 14px; color: #666666; margin-bottom: 8px;">客户出价</div>
+                            <div class="mobile-price email-accent" style="font-size: 32px; font-weight: 700; color: ' . $primaryColor . ';">' . $offerPrice . '</div>
                         </td>
                     </tr>
                     <tr>
-                        <td class="email-content" style="padding: 40px; background-color: #ffffff; border: 1px solid #e0e0e0; border-top: none;">
-                            <h2 style="margin: 0 0 24px; color: #1a1a1a; font-size: 20px; font-weight: 600;">咨询详情</h2>
+                        <td class="email-content" style="padding: 40px; background-color: #ffffff; border: none;">
+                            <h2 class="email-heading" style="margin: 0 0 24px; color: #1a1a1a; font-size: 20px; font-weight: 600;">咨询详情</h2>
                             <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
-                                <tr><td class="info-row" style="padding: 16px 20px; background-color: #f8f9fa; border-radius: 8px; margin-bottom: 12px;">
-                                    <div style="font-size: 12px; color: #666666; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;" class="text-secondary">域名</div>
-                                    <div style="font-size: 18px; font-weight: 600; color: ' . $primaryColor . ';">' . htmlspecialchars($domain) . '</div>
-                                </td></tr>
-                                <tr><td style="padding: 8px 0;">
-                                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
-                                        <tr>
-                                            <td class="info-row" style="padding: 16px 20px; background-color: #f8f9fa; border-radius: 8px; width: 48%;">
-                                                <div style="font-size: 12px; color: #666666; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;" class="text-secondary">客户姓名</div>
-                                                <div style="font-size: 16px; font-weight: 600; color: #1a1a1a;">' . $name . '</div>
-                                            </td>
-                                            <td style="width: 4%;"></td>
-                                            <td class="info-row" style="padding: 16px 20px; background-color: #f8f9fa; border-radius: 8px; width: 48%;">
-                                                <div style="font-size: 12px; color: #666666; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;" class="text-secondary">联系邮箱</div>
-                                                <div style="font-size: 16px; font-weight: 600; color: ' . $primaryColor . ';"><a href="mailto:' . $email . '" style="color: ' . $primaryColor . '; text-decoration: none;">' . $email . '</a></div>
-                                            </td>
-                                        </tr>
-                                    </table>
-                                </td></tr>
+                                <tr>
+                                    <td class="info-row" style="padding: 16px 20px; background-color: #f8f9fa; border-radius: 8px; margin-bottom: 12px;">
+                                        <div class="text-secondary email-muted" style="font-size: 12px; color: #666666; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">域名</div>
+                                        <div class="email-accent" style="font-size: 18px; font-weight: 600; color: ' . $primaryColor . ';">' . $domainAnchor . '</div>
+                                    </td>
+                                </tr>
+                                <tr><td style="height: 8px; line-height: 8px; font-size: 0;">&nbsp;</td></tr>
                             </table>
-                            <div style="margin: 24px 0 0; padding: 24px; background-color: #f8f9fa; border-radius: 8px;">
-                                <div style="font-size: 12px; color: #666666; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;" class="text-secondary">留言内容</div>
-                                <div style="font-size: 15px; color: #1a1a1a; line-height: 1.8; white-space: pre-wrap;">' . $message . '</div>
+
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" class="mobile-stack">
+                                <tr>
+                                    <td class="mobile-stack-cell" style="width: 50%; vertical-align: top;">
+                                        <div class="info-row" style="padding: 16px 20px; background-color: #f8f9fa; border-radius: 8px;">
+                                            <div class="text-secondary email-muted" style="font-size: 12px; color: #666666; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">客户姓名</div>
+                                            <div class="email-value" style="font-size: 16px; font-weight: 600; color: #1a1a1a;">' . $name . '</div>
+                                        </div>
+                                    </td>
+                                    <td class="mobile-gap" style="width: 8px;">&nbsp;</td>
+                                    <td class="mobile-stack-cell" style="width: 50%; vertical-align: top;">
+                                        <div class="info-row" style="padding: 16px 20px; background-color: #f8f9fa; border-radius: 8px;">
+                                            <div class="text-secondary email-muted" style="font-size: 12px; color: #666666; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">联系邮箱</div>
+                                            <div class="email-accent" style="font-size: 16px; font-weight: 600; color: ' . $primaryColor . ';"><a class="email-link" href="mailto:' . $email . '" style="color: ' . $primaryColor . '; text-decoration: none !important;">' . $email . '</a></div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <div class="info-card" style="margin: 24px 0 0; padding: 24px; background-color: #f8f9fa; border-radius: 8px;">
+                                <div class="text-secondary email-muted" style="font-size: 12px; color: #666666; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">留言内容</div>
+                                <div class="email-text" style="font-size: 15px; color: #1a1a1a; line-height: 1.8; white-space: pre-wrap;">' . $message . '</div>
                             </div>
                         </td>
                     </tr>

@@ -75,7 +75,16 @@ $domainIntro = $domainConfig->get('domain_intro'); // 域名介绍
 $themeColor = $domainConfig->get('theme_color');
 $currentDomain = $domainConfig->getCurrentDomain();
 $domainPrice = $domainConfig->get('domain_price');
-$siteName = $domainConfig->get('site_name', 'DOMAIN.LS'); // 站点名称，默认为 DOMAIN.LS
+$siteNameRaw = $domainConfig->get('site_name', 'NameDeal'); // 站点名称默认值
+$siteName = trim(str_replace('域名停放', '', (string)$siteNameRaw));
+if ($siteName === '') {
+    $siteName = 'NameDeal';
+}
+$footerLinks = $domainConfig->get('footer_links', []);
+$footerWhoisUrl = $domainConfig->get('footer_whois_url', 'https://bluewhois.com/{domain}');
+$footerXifengUrl = $domainConfig->get('footer_xifeng_url', 'https://xifeng.net');
+$footerMoreDomainsUrl = $domainConfig->get('footer_more_domains_url', 'https://domain.ls');
+$footerAnalyticsCode = $domainConfig->get('footer_analytics_code', '');
 
 // 引入页面模板
 include __DIR__ . '/templates/parking.php';

@@ -1,0 +1,114 @@
+# NameDeal / 域名停放系统 Nginx 配置示例
+# 使用前请替换:
+# 1) server_name
+# 2) root
+# 3) fastcgi_pass (PHP-FPM socket 或 host:port)
+#
+# 启用方式(示例):
+# sudo cp nginx.conf.example /etc/nginx/sites-available/domainparking.conf
+# sudo ln -s /etc/nginx/sites-available/domainparking.conf /etc/nginx/sites-enabled/domainparking.conf
+# sudo nginx -t && sudo systemctl reload nginx
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name example.com www.example.com;
+
+    root /Users/pan/Desktop/domainparking;
+    index index.php;
+
+    charset utf-8;
+    client_max_body_size 20m;
+
+    # ========= 安全限制 =========
+    # 拒绝访问隐藏文件和版本控制目录
+    location ~ /\.(?!well-known) {
+        deny all;
+    }
+
+    # 拒绝直接访问核心目录和数据目录
+    location ^~ /core/ { deny all; }
+    location ^~ /data/ { deny all; }
+
+    # 拒绝访问敏感文件
+    location ~* ^/(composer\.(json|lock)|package\.json|package-lock\.json|yarn\.lock|pnpm-lock\.yaml|README\.md|LICENSE)$ {
+        deny all;
+    }
+
+    # ========= 静态资源 =========
+    location ^~ /assets/ {
+        access_log off;
+        expires 7d;
+        add_header Cache-Control "public, max-age=604800";
+        try_files $uri =404;
+    }
+
+    location = /favicon.ico {
+        access_log off;
+        expires 30d;
+        try_files $uri =404;
+    }
+
+    # ========= 兼容旧入口重写 =========
+    # Apache .htaccess 里的历史路由兼容
+    location = /search.php {
+        return 302 /;
+    }
+
+    location = /api.php {
+        return 302 /api/whois.php;
+    }
+
+    location = /domain-lookup.php {
+        return 302 /;
+    }
+
+    location = /query-handler.php {
+        return 302 /;
+    }
+
+    # ========= 后台伪静态路由 =========
+    # /admin -> /admin.php
+    location = /admin {
+        rewrite ^ /admin.php?$query_string last;
+    }
+
+    location = /admin/ {
+        rewrite ^ /admin.php?$query_string last;
+    }
+
+    # /admin/{section} -> /admin.php?section={section}
+    location ~ ^/admin/(domains|stats|email|site|footer)/?$ {
+        rewrite ^/admin/([a-z]+)/?$ /admin.php?section=$1&$query_string last;
+    }
+
+    # ========= 主路由 =========
+    # 存在文件/目录直接访问，否则交给 index.php
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    # ========= PHP 处理 =========
+    location ~ \.php$ {
+        try_files $uri =404;
+
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        fastcgi_param DOCUMENT_ROOT $realpath_root;
+        fastcgi_index index.php;
+
+        # 按你的环境修改:
+        # Debian/Ubuntu 常见: unix:/run/php/php8.2-fpm.sock
+        # 或 TCP: 127.0.0.1:9000
+        fastcgi_pass unix:/run/php/php8.2-fpm.sock;
+
+        fastcgi_read_timeout 60s;
+    }
+
+    # ========= 基础安全响应头(可按需调整) =========
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+    # 不启用 HSTS，避免在纯 HTTP 或未配置 HTTPS 时误伤。
+}

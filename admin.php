@@ -38,7 +38,7 @@ function verifyAdminPassword($inputPassword, &$shouldMigrate = false)
 {
     $settings = getSiteSettings();
     $passwordHash = $settings['admin_password_hash'] ?? '';
-    $legacyPassword = $settings['admin_password'] ?? 'admin123';
+    $legacyPassword = $settings['admin_password'] ?? '12345678';
 
     if (!empty($passwordHash)) {
         return password_verify($inputPassword, $passwordHash);
@@ -75,6 +75,121 @@ function isValidDomainName($domain)
     return (bool)preg_match('/^(?!-)(?:[a-z0-9-]{1,63}\.)+[a-z]{2,63}$/i', $domain);
 }
 
+function isValidHttpUrl($url)
+{
+    if ($url === '') {
+        return true;
+    }
+    if (!filter_var($url, FILTER_VALIDATE_URL)) {
+        return false;
+    }
+    $scheme = strtolower((string)parse_url($url, PHP_URL_SCHEME));
+    return in_array($scheme, ['http', 'https'], true);
+}
+
+function getDefaultFooterLinks()
+{
+    return [
+        ['name' => 'WHOIS查询', 'url' => 'https://bluewhois.com/{domain}', 'icon_class' => 'fa-solid fa-magnifying-glass'],
+        ['name' => '西风', 'url' => 'https://xifeng.net', 'icon_class' => 'fa-solid fa-wind'],
+        ['name' => '更多域名', 'url' => 'https://domain.ls', 'icon_class' => 'fa-solid fa-globe'],
+    ];
+}
+
+function normalizeFooterLinks($rawLinks)
+{
+    $defaultLinks = getDefaultFooterLinks();
+    if (!is_array($rawLinks) || empty($rawLinks)) {
+        return $defaultLinks;
+    }
+
+    $normalized = [];
+    foreach ($rawLinks as $item) {
+        if (!is_array($item)) {
+            continue;
+        }
+        $name = trim((string)($item['name'] ?? ''));
+        $url = trim((string)($item['url'] ?? ''));
+        $iconClass = trim((string)($item['icon_class'] ?? 'fa-solid fa-link'));
+
+        if ($name === '' || $url === '') {
+            continue;
+        }
+
+        $normalized[] = [
+            'name' => $name,
+            'url' => $url,
+            'icon_class' => $iconClass,
+        ];
+    }
+
+    if (empty($normalized)) {
+        return $defaultLinks;
+    }
+    return array_slice($normalized, 0, 3);
+}
+
+function getFooterLinksFromSettings($data)
+{
+    if (!empty($data['footer_links']) && is_array($data['footer_links'])) {
+        return normalizeFooterLinks($data['footer_links']);
+    }
+
+    return normalizeFooterLinks([
+        [
+            'name' => 'WHOIS查询',
+            'url' => $data['footer_whois_url'] ?? 'https://bluewhois.com/{domain}',
+            'icon_class' => 'fa-solid fa-magnifying-glass',
+        ],
+        [
+            'name' => '西风',
+            'url' => $data['footer_xifeng_url'] ?? 'https://xifeng.net',
+            'icon_class' => 'fa-solid fa-wind',
+        ],
+        [
+            'name' => '更多域名',
+            'url' => $data['footer_more_domains_url'] ?? 'https://domain.ls',
+            'icon_class' => 'fa-solid fa-globe',
+        ],
+    ]);
+}
+
+function isValidFooterLinkUrl($url)
+{
+    $normalizedUrl = str_replace('{domain}', 'example.com', (string)$url);
+    return isValidHttpUrl($normalizedUrl);
+}
+
+function isValidFontAwesomeIconClass($iconClass)
+{
+    if ($iconClass === '') {
+        return false;
+    }
+    // 支持 FontAwesome 类名
+    if (preg_match('/^(fa-(solid|regular|brands|duotone|thin|light)\s+)?fa-[a-z0-9-]+(?:\s+fa-[a-z0-9-]+)*$/i', $iconClass)) {
+        return true;
+    }
+    // 支持 SVG 代码（必须以 <svg 开头，以 </svg> 结尾）
+    if (isValidSvgIcon($iconClass)) {
+        return true;
+    }
+    return false;
+}
+
+function isValidSvgIcon($str)
+{
+    $str = trim($str);
+    if (stripos($str, '<svg') !== 0 || stripos($str, '</svg>') === false) {
+        return false;
+    }
+    // 禁止脚本注入
+    $lower = strtolower($str);
+    if (preg_match('/<script|on\w+\s*=|javascript:/i', $lower)) {
+        return false;
+    }
+    return true;
+}
+
 if (PHP_VERSION_ID >= 70300) {
     session_set_cookie_params([
         'lifetime' => 0,
@@ -88,6 +203,7 @@ if (PHP_VERSION_ID >= 70300) {
 session_start();
 $csrfToken = ensureCsrfToken();
 $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true;
+$adminEntryUrl = '/admin';
 
 // 处理登录
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'login') {
@@ -103,7 +219,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             if ($shouldMigratePassword) {
                 migrateLegacyPasswordToHash($_POST['password']);
             }
-            header('Location: ' . $_SERVER['PHP_SELF']);
+            header('Location: ' . $adminEntryUrl);
             exit;
         }
         $loginError = '密码错误';
@@ -113,7 +229,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 // 处理登出
 if (isset($_GET['logout'])) {
     session_destroy();
-    header('Location: ' . $_SERVER['PHP_SELF']);
+    header('Location: ' . $adminEntryUrl);
     exit;
 }
 
@@ -127,7 +243,7 @@ if (!$isLoggedIn) {
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>域名管理后台 - 登录</title>
-        <link rel="stylesheet" href="assets/css/admin.css">
+        <link rel="stylesheet" href="/assets/css/admin.css">
     </head>
 
     <body class="login-page">
@@ -230,7 +346,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             // 不返回密码，只返回是否存在密码的标记
             echo json_encode(['success' => true, 'data' => [
                 'admin_password_set' => !empty($data['admin_password_hash']) || !empty($data['admin_password']),
-                'site_name' => $data['site_name'] ?? ''
+                'site_name' => $data['site_name'] ?? '',
             ]]);
             exit;
 
@@ -276,6 +392,74 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
             writeJsonFile($settingsFile, $newData);
             echo json_encode(['success' => true, 'message' => '站点设置已保存']);
+            exit;
+
+        case 'get_footer_settings':
+            $settingsFile = __DIR__ . '/data/site_settings.json';
+            $data = readJsonFile($settingsFile);
+            echo json_encode(['success' => true, 'data' => [
+                'footer_links' => getFooterLinksFromSettings($data),
+                'footer_analytics_code' => $data['footer_analytics_code'] ?? '',
+            ]], JSON_UNESCAPED_UNICODE);
+            exit;
+
+        case 'save_footer_settings':
+            $settingsFile = __DIR__ . '/data/site_settings.json';
+            $existingData = readJsonFile($settingsFile);
+            $footerAnalyticsCode = trim((string)($_POST['footer_analytics_code'] ?? ''));
+            $footerLinksRaw = (string)($_POST['footer_links_json'] ?? '[]');
+            $decoded = json_decode($footerLinksRaw, true);
+
+            if (!is_array($decoded)) {
+                echo json_encode(['success' => false, 'message' => '页脚链接数据格式无效'], JSON_UNESCAPED_UNICODE);
+                exit;
+            }
+            if (count($decoded) > 3) {
+                echo json_encode(['success' => false, 'message' => '最多只允许 3 个页脚链接'], JSON_UNESCAPED_UNICODE);
+                exit;
+            }
+
+            $normalizedLinks = [];
+            foreach ($decoded as $index => $item) {
+                if (!is_array($item)) {
+                    echo json_encode(['success' => false, 'message' => '页脚链接格式无效'], JSON_UNESCAPED_UNICODE);
+                    exit;
+                }
+
+                $name = trim((string)($item['name'] ?? ''));
+                $url = trim((string)($item['url'] ?? ''));
+                $iconClass = trim((string)($item['icon_class'] ?? 'fa-solid fa-link'));
+
+                if ($name === '' || $url === '') {
+                    echo json_encode(['success' => false, 'message' => '页脚链接名称和 URL 不能为空'], JSON_UNESCAPED_UNICODE);
+                    exit;
+                }
+                if (!isValidFooterLinkUrl($url)) {
+                    echo json_encode(['success' => false, 'message' => '第 ' . ($index + 1) . ' 个链接 URL 格式不正确'], JSON_UNESCAPED_UNICODE);
+                    exit;
+                }
+                if (!isValidFontAwesomeIconClass($iconClass)) {
+                    echo json_encode(['success' => false, 'message' => '第 ' . ($index + 1) . ' 个图标类名无效'], JSON_UNESCAPED_UNICODE);
+                    exit;
+                }
+
+                $normalizedLinks[] = [
+                    'name' => $name,
+                    'url' => $url,
+                    'icon_class' => $iconClass,
+                ];
+            }
+
+            if (empty($normalizedLinks)) {
+                $normalizedLinks = getDefaultFooterLinks();
+            }
+
+            $newData = $existingData;
+            $newData['footer_links'] = $normalizedLinks;
+            $newData['footer_analytics_code'] = $footerAnalyticsCode;
+
+            writeJsonFile($settingsFile, $newData);
+            echo json_encode(['success' => true, 'message' => '页脚设置已保存'], JSON_UNESCAPED_UNICODE);
             exit;
 
         case 'test_email':
@@ -388,8 +572,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     }
 }
 
-// section 切换（域名管理 / 访问统计 / 邮件设置 / 站点设置）
-$section = isset($_GET['section']) ? $_GET['section'] : 'domains';
+$allowedSections = ['domains', 'stats', 'email', 'site', 'footer'];
+// section 切换（支持 ?section= 和 /admin/{section} 两种形式）
+$requestPath = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH) ?: '';
+$sectionFromPath = '';
+if (preg_match('#^/admin(?:/([a-z]+))?/?$#i', $requestPath, $m)) {
+    $sectionFromPath = strtolower((string)($m[1] ?? 'domains'));
+}
+$section = isset($_GET['section']) ? (string)$_GET['section'] : ($sectionFromPath ?: 'domains');
+if (!in_array($section, $allowedSections, true)) {
+    $section = 'domains';
+}
+$usePrettyAdminRoutes = true;
+$adminAjaxEndpoint = $usePrettyAdminRoutes ? '/admin.php' : $_SERVER['PHP_SELF'];
+
+function adminSectionUrl($section = 'domains', $params = [])
+{
+    global $usePrettyAdminRoutes, $allowedSections;
+
+    $targetSection = in_array($section, $allowedSections, true) ? $section : 'domains';
+    $query = http_build_query($params);
+
+    if ($usePrettyAdminRoutes) {
+        $path = '/admin' . ($targetSection === 'domains' ? '' : '/' . $targetSection);
+        return $query !== '' ? ($path . '?' . $query) : $path;
+    }
+
+    $base = $_SERVER['PHP_SELF'] . '?section=' . rawurlencode($targetSection);
+    return $query !== '' ? ($base . '&' . $query) : $base;
+}
+
+function adminLogoutUrl()
+{
+    global $usePrettyAdminRoutes;
+    if ($usePrettyAdminRoutes) {
+        return '/admin?logout=1';
+    }
+    return $_SERVER['PHP_SELF'] . '?logout=1';
+}
 
 // 分页设置
 $perPage = isset($_GET['per_page']) ? max(10, min(50, (int)$_GET['per_page'])) : 10;
@@ -439,10 +659,10 @@ if ($section === 'stats') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>域名管理后台</title>
-    <link rel="stylesheet" href="assets/css/admin.css">
+    <link rel="stylesheet" href="/assets/css/admin.css">
 </head>
 
-<body data-admin-endpoint="admin.php" data-csrf-token="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8'); ?>">
+<body data-admin-endpoint="<?php echo htmlspecialchars($adminAjaxEndpoint, ENT_QUOTES, 'UTF-8'); ?>" data-csrf-token="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8'); ?>">
     <!-- 顶部导航栏 -->
     <div class="topbar">
         <div class="topbar-inner admin-container">
@@ -453,7 +673,7 @@ if ($section === 'stats') {
                 <span class="title">域名管理后台</span>
             </div>
             <div class="topbar-actions">
-                <a href="?logout" class="logout-btn">
+                <a href="<?php echo htmlspecialchars(adminLogoutUrl(), ENT_QUOTES, 'UTF-8'); ?>" class="logout-btn">
                     <div class="logout-sign">
                         <svg viewBox="0 0 24 24" fill="currentColor" width="17" height="17">
                             <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.59L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z" />
@@ -469,10 +689,11 @@ if ($section === 'stats') {
         <!-- 侧边菜单 -->
         <aside class="sidebar">
             <nav class="menu">
-                <a class="menu-item <?php echo $section === 'domains' ? 'active' : ''; ?>" href="?section=domains">域名管理</a>
-                <a class="menu-item <?php echo $section === 'stats' ? 'active' : ''; ?>" href="?section=stats">访问统计</a>
-                <a class="menu-item <?php echo $section === 'email' ? 'active' : ''; ?>" href="?section=email">邮件设置</a>
-                <a class="menu-item <?php echo $section === 'site' ? 'active' : ''; ?>" href="?section=site">站点设置</a>
+                <a class="menu-item <?php echo $section === 'domains' ? 'active' : ''; ?>" href="<?php echo htmlspecialchars(adminSectionUrl('domains'), ENT_QUOTES, 'UTF-8'); ?>">域名管理</a>
+                <a class="menu-item <?php echo $section === 'stats' ? 'active' : ''; ?>" href="<?php echo htmlspecialchars(adminSectionUrl('stats'), ENT_QUOTES, 'UTF-8'); ?>">访问统计</a>
+                <a class="menu-item <?php echo $section === 'email' ? 'active' : ''; ?>" href="<?php echo htmlspecialchars(adminSectionUrl('email'), ENT_QUOTES, 'UTF-8'); ?>">邮件设置</a>
+                <a class="menu-item <?php echo $section === 'site' ? 'active' : ''; ?>" href="<?php echo htmlspecialchars(adminSectionUrl('site'), ENT_QUOTES, 'UTF-8'); ?>">站点设置</a>
+                <a class="menu-item <?php echo $section === 'footer' ? 'active' : ''; ?>" href="<?php echo htmlspecialchars(adminSectionUrl('footer'), ENT_QUOTES, 'UTF-8'); ?>">页脚设置</a>
             </nav>
         </aside>
 
@@ -542,6 +763,15 @@ if ($section === 'stats') {
                                     <?php endif; ?>
                                 </div>
                                 <div class="domain-row-actions">
+                                    <button class="btn-icon btn-whois-toggle" type="button" data-domain="<?php echo htmlspecialchars($domain['domain'], ENT_QUOTES, 'UTF-8'); ?>" title="WHOIS 一键查询" aria-expanded="false">
+                                        <svg class="whois-icon" viewBox="0 0 1024 1024" aria-hidden="true" focusable="false">
+                                            <path d="M707.621926 350.549333l-45.037037 6.637037C636.416 179.465481 567.580444 60.681481 498.839704 60.681481c-68.077037 0-136.343704 116.508444-163.081482 291.802075l-44.980148-6.864593C320.587852 150.243556 399.701333 15.17037 498.839704 15.17037c99.972741 0 179.617185 137.462519 208.782222 335.378963zM290.664296 677.641481l44.999111-6.826666c26.661926 175.653926 95.004444 292.503704 163.176297 292.503704 68.266667 0 136.722963-117.229037 163.271111-293.281186l44.999111 6.788741C677.546667 872.997926 598.224593 1008.82963 498.839704 1008.82963c-99.252148 0-178.460444-135.433481-208.175408-331.188149z" fill="currentColor"></path>
+                                            <path d="M512 1008.82963C237.605926 1008.82963 15.17037 786.394074 15.17037 512 15.17037 237.605926 237.605926 15.17037 512 15.17037 786.394074 15.17037 1008.82963 237.605926 1008.82963 512c0 274.394074-222.435556 496.82963-496.82963 496.82963z m0-45.511111c249.249185 0 451.318519-202.069333 451.318519-451.318519S761.249185 60.681481 512 60.681481 60.681481 262.750815 60.681481 512 262.750815 963.318519 512 963.318519z" fill="currentColor"></path>
+                                            <path d="M64.265481 376.737185v-45.511111H959.715556v45.511111H64.284444zM959.715556 647.262815v45.511111H64.284444v-45.511111H959.715556z" fill="currentColor"></path>
+                                            <path d="M118.139259 429.131852h31.288889l31.744 128.720592h0.948148l33.431704-128.701629h28.672l33.431704 128.701629h0.948148l31.762963-128.701629h31.288889l-48.82963 169.244444h-29.392593l-32.957629-127.29837h-0.948148l-33.185185 127.29837H166.72237L118.120296 429.131852z m241.284741 0h27.742815v70.656h85.807407V429.131852h27.723852v169.244444h-27.723852v-74.903703h-85.807407v74.903703h-27.742815V429.131852z m249.609481-3.299556c25.903407 0 46.288593 8.362667 61.155556 25.125926 14.222222 15.796148 21.333333 36.807111 21.333333 63.051852 0 25.903407-7.111111 46.838519-21.333333 62.805333-14.866963 16.592593-35.252148 24.89837-61.155556 24.898371-25.92237 0-46.307556-8.38163-61.155555-25.125926-14.070519-15.966815-21.105778-36.826074-21.105778-62.577778 0-25.92237 7.035259-46.857481 21.105778-62.824296 14.52563-16.914963 34.910815-25.353481 61.155555-25.353482z m0 24.405334c-17.389037 0-30.985481 5.935407-40.77037 17.787259-9.178074 11.207111-13.748148 26.548148-13.748148 45.985185 0 19.26637 4.570074 34.512593 13.748148 45.738667 9.481481 11.700148 23.058963 17.540741 40.77037 17.54074 17.540741 0 31.04237-5.613037 40.523852-16.820148 9.329778-11.226074 13.994667-26.718815 13.994667-46.459259 0-19.759407-4.664889-35.403852-13.994667-46.933333-9.329778-11.226074-22.831407-16.839111-40.523852-16.839111z m108.562963-21.086815h27.723852v169.244444h-27.723852V429.131852z m120.642371-3.318519c20.081778 0 35.65037 4.096 46.705778 12.325926 11.851852 8.836741 18.640593 22.509037 20.385185 40.997926h-27.496297c-2.37037-10.42963-6.712889-17.938963-13.046518-22.509037-6.011259-4.589037-15.322074-6.883556-27.97037-6.883555-10.752 0-18.887111 1.517037-24.405334 4.513185-6.959407 3.470222-10.42963 9.310815-10.429629 17.54074 0 7.414519 3.944296 13.179259 11.851851 17.294223 3.792593 2.048 13.425778 5.537185 28.918519 10.429629 22.281481 6.788741 37.05363 12.325926 44.316444 16.592593 14.696296 8.685037 22.053926 20.859259 22.053926 36.503704 0 15.17037-5.935407 27.173926-17.787259 36.029629-12.003556 8.685037-28.747852 13.046519-50.251852 13.046519-20.859259 0-37.129481-4.039111-48.829629-12.098371-14.373926-9.955556-22.110815-25.675852-23.22963-47.160888h27.496296c1.896296 12.951704 6.485333 22.110815 13.748148 27.496296 6.807704 4.892444 17.066667 7.338667 30.814815 7.338666 12.325926 0 22.129778-2.048 29.392593-6.162962 7.281778-4.41837 10.903704-10.05037 10.903704-16.820149 0-9.007407-5.290667-16.118519-15.872-21.333333-3.792593-1.896296-14.791111-5.613037-32.95763-11.150222-21.010963-6.637037-33.962667-11.377778-38.874074-14.222222-12.951704-7.736889-19.437037-19.114667-19.437037-34.133334 0-15.17037 6.314667-26.927407 18.962963-35.309037 11.700148-8.229926 26.699852-12.325926 45.037037-12.325926z" fill="currentColor"></path>
+                                        </svg>
+                                        <span class="whois-btn-spinner" aria-hidden="true"></span>
+                                    </button>
                                     <button class="btn-icon" onclick="editDomain(<?php echo $domain['id']; ?>)" title="编辑">
                                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="18" height="18">
                                             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke-linejoin="round" stroke-linecap="round"></path>
@@ -574,7 +804,7 @@ if ($section === 'stats') {
                         <div class="pagination-wrapper">
                             <div class="pagination">
                                 <?php if ($currentPage > 1): ?>
-                                    <a href="?section=domains&page=<?php echo $currentPage - 1; ?>&per_page=<?php echo $perPage; ?>" class="pagination-btn">上一页</a>
+                                    <a href="<?php echo htmlspecialchars(adminSectionUrl('domains', ['page' => $currentPage - 1, 'per_page' => $perPage]), ENT_QUOTES, 'UTF-8'); ?>" class="pagination-btn">上一页</a>
                                 <?php else: ?>
                                     <span class="pagination-btn disabled">上一页</span>
                                 <?php endif; ?>
@@ -582,7 +812,7 @@ if ($section === 'stats') {
                                 <span class="pagination-info">第 <?php echo $currentPage; ?> / <?php echo $totalPages; ?> 页</span>
 
                                 <?php if ($currentPage < $totalPages): ?>
-                                    <a href="?section=domains&page=<?php echo $currentPage + 1; ?>&per_page=<?php echo $perPage; ?>" class="pagination-btn">下一页</a>
+                                    <a href="<?php echo htmlspecialchars(adminSectionUrl('domains', ['page' => $currentPage + 1, 'per_page' => $perPage]), ENT_QUOTES, 'UTF-8'); ?>" class="pagination-btn">下一页</a>
                                 <?php else: ?>
                                     <span class="pagination-btn disabled">下一页</span>
                                 <?php endif; ?>
@@ -670,7 +900,7 @@ if ($section === 'stats') {
                         <div class="pagination-wrapper">
                             <div class="pagination">
                                 <?php if ($currentPage > 1): ?>
-                                    <a href="?section=stats&page=<?php echo $currentPage - 1; ?>&per_page=<?php echo $perPage; ?>&days=<?php echo $days; ?>" class="pagination-btn">上一页</a>
+                                    <a href="<?php echo htmlspecialchars(adminSectionUrl('stats', ['page' => $currentPage - 1, 'per_page' => $perPage, 'days' => $days]), ENT_QUOTES, 'UTF-8'); ?>" class="pagination-btn">上一页</a>
                                 <?php else: ?>
                                     <span class="pagination-btn disabled">上一页</span>
                                 <?php endif; ?>
@@ -678,7 +908,7 @@ if ($section === 'stats') {
                                 <span class="pagination-info">第 <?php echo $currentPage; ?> / <?php echo $statsTotalPages; ?> 页</span>
 
                                 <?php if ($currentPage < $statsTotalPages): ?>
-                                    <a href="?section=stats&page=<?php echo $currentPage + 1; ?>&per_page=<?php echo $perPage; ?>&days=<?php echo $days; ?>" class="pagination-btn">下一页</a>
+                                    <a href="<?php echo htmlspecialchars(adminSectionUrl('stats', ['page' => $currentPage + 1, 'per_page' => $perPage, 'days' => $days]), ENT_QUOTES, 'UTF-8'); ?>" class="pagination-btn">下一页</a>
                                 <?php else: ?>
                                     <span class="pagination-btn disabled">下一页</span>
                                 <?php endif; ?>
@@ -696,56 +926,76 @@ if ($section === 'stats') {
                     </h1>
                 </div>
                 <div class="card">
-                    <form id="emailSettingsForm" onsubmit="saveEmailSettings(event)">
-                        <div class="form-group">
-                            <label for="default_to_email">默认收件人邮箱</label>
-                            <input type="email" id="default_to_email" name="default_to_email" placeholder="admin@example.com">
-                        </div>
-                        <hr style="border:none;border-top:1px solid var(--border-color);margin:16px 0;">
-                        <div class="form-row form-row-two">
-                            <div class="form-group">
-                                <label for="from_name">默认发件人名称</label>
-                                <input type="text" id="from_name" name="from_name" placeholder="例如：域名停放系统">
+                    <form id="emailSettingsForm" class="email-settings-form" onsubmit="saveEmailSettings(event)">
+                        <section class="email-settings-section">
+                            <div class="email-settings-section-header">
+                                <h3>收件人设置</h3>
+                                <p>测试邮件默认会使用这个邮箱，可按需手动修改。</p>
                             </div>
                             <div class="form-group">
-                                <label for="from_email">默认发件人邮箱</label>
-                                <input type="email" id="from_email" name="from_email" placeholder="noreply@example.com">
+                                <label for="default_to_email">默认收件人邮箱</label>
+                                <input type="email" id="default_to_email" name="default_to_email" placeholder="admin@example.com">
                             </div>
-                        </div>
-                        <div class="form-row form-row-three">
+                        </section>
+
+                        <section class="email-settings-section">
+                            <div class="email-settings-section-header">
+                                <h3>发件人与 SMTP</h3>
+                                <p>用于系统发送询价通知、测试邮件和自动通知。</p>
+                            </div>
+                            <div class="form-row form-row-two">
+                                <div class="form-group">
+                                    <label for="from_name">默认发件人名称</label>
+                                    <input type="text" id="from_name" name="from_name" placeholder="例如：域名停放系统">
+                                </div>
+                                <div class="form-group">
+                                    <label for="from_email">默认发件人邮箱</label>
+                                    <input type="email" id="from_email" name="from_email" placeholder="noreply@example.com">
+                                </div>
+                            </div>
+                            <div class="form-row form-row-three">
+                                <div class="form-group">
+                                    <label for="smtp_encryption">加密方式</label>
+                                    <select id="smtp_encryption" name="smtp_encryption">
+                                        <option value="none">不加密</option>
+                                        <option value="tls">STARTTLS</option>
+                                        <option value="ssl">SSL/TLS</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="smtp_host">SMTP 服务器</label>
+                                    <input type="text" id="smtp_host" name="smtp_host" placeholder="smtp.example.com">
+                                </div>
+                                <div class="form-group">
+                                    <label for="smtp_port">端口</label>
+                                    <input type="number" id="smtp_port" name="smtp_port" placeholder="587">
+                                </div>
+                            </div>
+                            <div class="form-row form-row-two">
+                                <div class="form-group">
+                                    <label for="smtp_username">用户名</label>
+                                    <input type="text" id="smtp_username" name="smtp_username" placeholder="user@example.com">
+                                </div>
+                                <div class="form-group">
+                                    <label for="smtp_password">密码</label>
+                                    <input type="password" id="smtp_password" name="smtp_password" placeholder="••••••••">
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="email-settings-section">
+                            <div class="email-settings-section-header">
+                                <h3>测试邮件</h3>
+                                <p>发送前可临时修改收件邮箱，不会覆盖默认配置。</p>
+                            </div>
                             <div class="form-group">
-                                <label for="smtp_encryption">加密方式</label>
-                                <select id="smtp_encryption" name="smtp_encryption">
-                                    <option value="none">不加密</option>
-                                    <option value="tls">STARTTLS</option>
-                                    <option value="ssl">SSL/TLS</option>
-                                </select>
+                                <label for="test_email_to">测试邮件收件邮箱</label>
+                                <input type="email" id="test_email_to" name="test_email_to" placeholder="test@example.com">
                             </div>
-                            <div class="form-group">
-                                <label for="smtp_host">SMTP 服务器</label>
-                                <input type="text" id="smtp_host" name="smtp_host" placeholder="smtp.example.com">
-                            </div>
-                            <div class="form-group">
-                                <label for="smtp_port">端口</label>
-                                <input type="number" id="smtp_port" name="smtp_port" placeholder="587">
-                            </div>
-                        </div>
-                        <div class="form-row form-row-two">
-                            <div class="form-group">
-                                <label for="smtp_username">用户名</label>
-                                <input type="text" id="smtp_username" name="smtp_username" placeholder="user@example.com">
-                            </div>
-                            <div class="form-group">
-                                <label for="smtp_password">密码</label>
-                                <input type="password" id="smtp_password" name="smtp_password" placeholder="••••••••">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="test_email_to">测试邮件收件邮箱</label>
-                            <input type="email" id="test_email_to" name="test_email_to" placeholder="test@example.com">
-                        </div>
-                        <div class="modal-footer" style="justify-content:flex-end; gap:12px;">
-                            <button type="button" class="btn btn-secondary" onclick="sendTestEmail()">发送测试邮件</button>
+                        </section>
+
+                        <div class="email-settings-actions">
+                            <button type="button" class="btn btn-secondary" id="testEmailBtn" onclick="sendTestEmail()">发送测试邮件</button>
                             <button type="submit" class="btn btn-primary">保存设置</button>
                         </div>
                     </form>
@@ -772,7 +1022,7 @@ if ($section === 'stats') {
                         </div>
                         <div class="form-group">
                             <label for="admin_password">新密码</label>
-                            <input type="password" id="admin_password" name="admin_password" placeholder="留空则不修改密码，至少6位">
+                            <input type="password" id="admin_password" name="admin_password" placeholder="留空则不修改密码，至少8位">
                             <small style="color: var(--text-secondary); font-size: 13px; margin-top: 4px; display: block;">留空则不修改当前密码</small>
                         </div>
                         <div class="form-group">
@@ -792,6 +1042,43 @@ if ($section === 'stats') {
                 <div class="card">
                     <h2>说明</h2>
                     <p>修改密码时需要输入原密码进行验证。站点名称可用于系统标识，可根据需要进行配置。</p>
+                </div>
+            <?php elseif ($section === 'footer'): ?>
+                <div class="admin-header">
+                    <h1>
+                        <svg class="header-icon" viewBox="0 0 24 24" fill="currentColor" width="28" height="28">
+                            <path d="M3 5.75A2.75 2.75 0 0 1 5.75 3h12.5A2.75 2.75 0 0 1 21 5.75v12.5A2.75 2.75 0 0 1 18.25 21H5.75A2.75 2.75 0 0 1 3 18.25V5.75zm4.25 2a.75.75 0 0 0 0 1.5h9.5a.75.75 0 0 0 0-1.5h-9.5zm0 3.5a.75.75 0 0 0 0 1.5h5.5a.75.75 0 0 0 0-1.5h-5.5zm0 3.5a.75.75 0 0 0 0 1.5h8a.75.75 0 0 0 0-1.5h-8z" />
+                        </svg>
+                        页脚设置
+                    </h1>
+                </div>
+                <div class="card">
+                    <form id="footerSettingsForm" onsubmit="saveFooterSettings(event)">
+                        <div class="form-group">
+                            <label>页脚链接</label>
+                            <small style="color: var(--text-secondary); font-size: 13px; display: block; margin-bottom: 10px;">
+                                图标支持 Font Awesome 类名（如 <code>fa-solid fa-globe</code>）或 SVG 代码（如 <code>&lt;svg&gt;...&lt;/svg&gt;</code>），系统会自动识别。URL 支持 <code>{domain}</code> 占位符。最多 3 个链接，GitHub 为固定版权链接不可修改。
+                            </small>
+                            <div id="footerLinksContainer" class="footer-links-editor"></div>
+                            <button type="button" class="btn btn-secondary" onclick="addFooterLinkRow()" style="margin-top: 12px;">添加链接</button>
+                        </div>
+
+                        <hr style="border:none;border-top:1px solid var(--border-color);margin:20px 0;">
+
+                        <div class="form-group">
+                            <label for="footer_analytics_code">统计代码</label>
+                            <textarea id="footer_analytics_code" name="footer_analytics_code" rows="6" placeholder="粘贴第三方统计代码，例如 Google Analytics / 百度统计代码"></textarea>
+                            <small style="color: var(--text-secondary); font-size: 13px; margin-top: 4px; display: block;">会插入到前台页面底部。</small>
+                        </div>
+
+                        <div class="modal-footer" style="justify-content:flex-end; gap:12px;">
+                            <button type="submit" class="btn btn-primary">保存设置</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card">
+                    <h2>说明</h2>
+                    <p>页脚链接会按填写顺序显示。图标支持两种格式：Font Awesome 类名（如 <code>fa-solid fa-globe</code>、<code>fa-brands fa-github</code>）或直接粘贴 SVG 代码。系统会自动识别格式并渲染对应图标。</p>
                 </div>
             <?php endif; ?>
         </main>
@@ -874,6 +1161,24 @@ if ($section === 'stats') {
         </div>
     </div>
 
+    <!-- WHOIS 查询模态框 -->
+    <div id="whoisModal" class="modal" aria-hidden="true">
+        <div class="modal-content whois-modal-content">
+            <div class="modal-header">
+                <h2 id="whoisModalTitle">WHOIS 查询</h2>
+                <button class="modal-close" type="button" onclick="closeWhoisModal()">&times;</button>
+            </div>
+            <div class="whois-modal-body">
+                <div class="whois-modal-toolbar">
+                    <button type="button" class="btn btn-secondary" id="whoisCopyBtn" disabled title="复制结果" aria-label="复制结果">
+                        ⧉
+                    </button>
+                </div>
+                <div id="whoisModalBody" class="whois-content"></div>
+            </div>
+        </div>
+    </div>
+
     <footer class="admin-footer">
         <div class="admin-footer-content">
             <p class="admin-footer-copyright">
@@ -932,7 +1237,7 @@ if ($section === 'stats') {
         </div>
     </footer>
 
-    <script src="assets/js/admin.js"></script>
+    <script src="/assets/js/admin.js"></script>
 </body>
 
 </html>

@@ -83,6 +83,10 @@ body {
   line-height: 1.6;
 }
 
+body.home-whois-modal-open {
+  overflow: hidden;
+}
+
 /* ========== 背景图片层 ========== */
 .background-image {
   position: fixed;
@@ -368,6 +372,242 @@ body {
   left: 50%;
   transform: translateX(-50%);
   z-index: 1;
+}
+
+.home-whois-toggle {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 1px solid var(--border-color);
+  background: var(--primary-light);
+  color: var(--primary-color);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+  padding: 0;
+  margin-left: auto;
+  z-index: 2;
+}
+
+.home-whois-toggle:hover {
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px var(--primary-light);
+  transform: translateY(-1px);
+}
+
+.home-whois-toggle.is-loading {
+  pointer-events: none;
+}
+
+.home-whois-icon {
+  width: 13px;
+  height: 13px;
+  line-height: 0;
+  display: block;
+}
+
+.home-whois-toggle.is-loading .home-whois-icon {
+  display: none;
+}
+
+.home-whois-spinner {
+  display: none;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--primary-color);
+  border-top-color: transparent;
+  border-radius: 50%;
+}
+
+.home-whois-toggle.is-loading .home-whois-spinner {
+  display: inline-block;
+  animation: btnSpin 0.8s linear infinite;
+}
+
+@keyframes btnSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.home-whois-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.52);
+  backdrop-filter: blur(4px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 10010;
+  padding: 20px 16px;
+}
+
+.home-whois-modal.show {
+  display: flex;
+}
+
+.home-whois-modal-content {
+  width: min(760px, 92vw);
+  max-height: 80vh;
+  border-radius: 14px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  box-shadow: 0 20px 44px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+}
+
+.home-whois-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.home-whois-modal-header h3 {
+  margin: 0;
+  font-size: 16px;
+  color: var(--text-primary);
+}
+
+.home-whois-modal-close {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.home-whois-modal-close:hover {
+  background: var(--primary-light);
+  color: var(--primary-color);
+}
+
+.home-whois-modal-body {
+  padding: 16px;
+  overflow: auto;
+  max-height: calc(80vh - 62px);
+}
+
+.home-whois-content {
+  background: linear-gradient(180deg, #f8fafc 0%, #f4f7fb 100%);
+  border: 1px solid rgba(0, 102, 252, 0.12);
+  border-radius: 12px;
+  padding: 15px;
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.7;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+}
+
+.home-whois-loading {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.home-whois-loading-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--primary-color);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: btnSpin 0.75s linear infinite;
+}
+
+.home-whois-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 12px;
+}
+
+.home-whois-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+  border: 1px solid rgba(0, 102, 252, 0.12);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.75);
+}
+
+.home-whois-row-stack {
+  margin-top: 10px;
+}
+
+.home-whois-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  letter-spacing: 0.2px;
+  font-weight: 600;
+}
+
+.home-whois-value {
+  font-size: 13px;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.home-whois-ns-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.home-whois-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(0, 102, 252, 0.1);
+  color: var(--primary-color);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.home-whois-expiring {
+  color: #dc3545;
+  font-weight: 600;
+}
+
+.home-whois-available {
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+[data-theme="dark"] .home-whois-content {
+  background: linear-gradient(180deg, #1b2538 0%, #1a2233 100%);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+}
+
+[data-theme="dark"] .home-whois-modal-content {
+  background: #121821;
+  border-color: #223147;
+}
+
+[data-theme="dark"] .home-whois-modal-header {
+  border-bottom-color: #223147;
+}
+
+[data-theme="dark"] .home-whois-row {
+  background: rgba(15, 23, 42, 0.42);
+  border-color: rgba(59, 130, 246, 0.28);
+}
+
+[data-theme="dark"] .home-whois-tag {
+  background: rgba(59, 130, 246, 0.2);
 }
 
 /* ========== 描述文本 ========== */
@@ -1213,7 +1453,38 @@ body {
 }
 
 .btn-verify-email:disabled .icon {
-  opacity: 0.3;
+  opacity: 0 !important;
+  display: none !important;
+  visibility: hidden !important;
+}
+
+.btn-verify-email.is-loading .icon {
+  opacity: 0 !important;
+  display: none !important;
+  visibility: hidden !important;
+}
+
+.btn-verify-email.is-loading .text,
+.btn-send-code.is-loading .text,
+.submit-btn.is-loading .text,
+.btn-send-code.is-loading .icon,
+.submit-btn.is-loading .icon {
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+.btn-verify-email.is-loading::after,
+.btn-send-code.is-loading::after,
+.submit-btn.is-loading::after {
+  content: "";
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: btnSpin 0.8s linear infinite;
+  z-index: 3;
 }
 
 /* 验证成功后隐藏按钮时，确保图标不显示 */
@@ -1775,6 +2046,18 @@ body {
   transition: var(--transition);
 }
 
+.footer-links a .footer-icon-svg {
+  display: inline-flex;
+  align-items: center;
+  line-height: 0;
+}
+
+.footer-links a .footer-icon-svg svg {
+  width: 1em;
+  height: 1em;
+  fill: currentColor;
+}
+
 .footer-links a:hover {
   color: var(--primary-color);
   text-decoration: none;
@@ -1845,6 +2128,24 @@ body {
     font-size: 15px;
     margin-bottom: 28px;
     padding: 16px 24px;
+  }
+
+  .home-whois-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .home-whois-modal {
+    padding: 12px;
+  }
+
+  .home-whois-modal-content {
+    width: 100%;
+    max-height: 84vh;
+  }
+
+  .home-whois-modal-body {
+    max-height: calc(84vh - 62px);
+    padding: 14px;
   }
 
   .domain-value {

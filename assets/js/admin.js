@@ -335,91 +335,257 @@
   initSearch("statsDomainSearch", ".stats-row", ["data-domain"], "empty-state-search", "statsList");
   initSearch("domainSearch", ".domain-row", ["data-domain", "data-title"], "empty-state", "domainsList");
 
+  // WHOIS 一键查询（事件委托 + Modal）
+  (function initWhoisLookup() {
+    const domainsList = document.getElementById("domainsList");
+    const whoisModal = document.getElementById("whoisModal");
+    const whoisModalBody = document.getElementById("whoisModalBody");
+    const whoisModalTitle = document.getElementById("whoisModalTitle");
+    const whoisCopyBtn = document.getElementById("whoisCopyBtn");
+    if (
+      !domainsList ||
+      !whoisModal ||
+      !whoisModalBody ||
+      !whoisModalTitle ||
+      !whoisCopyBtn
+    )
+      return;
+
+    const cache = new Map();
+    let activeButton = null;
+    let whoisCopyText = "";
+
+    const formatDate = (value) => {
+      if (!value) return "-";
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return String(value);
+      return date.toISOString().slice(0, 10);
+    };
+
+    const isExpiringSoon = (value) => {
+      if (!value) return false;
+      const expiry = new Date(value);
+      if (Number.isNaN(expiry.getTime())) return false;
+      const now = new Date();
+      const diff = expiry.getTime() - now.getTime();
+      return diff > 0 && diff <= 30 * 24 * 60 * 60 * 1000;
+    };
+
+    const escapeHtml = (value) =>
+      String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+
+    const setButtonLoading = (button, isLoading) => {
+      if (!button) return;
+      button.classList.toggle("is-loading", isLoading);
+      button.disabled = isLoading;
+    };
+
+    const showWhoisModalLoading = () => {
+      whoisModalBody.innerHTML = `
+        <div class="whois-loading">
+          <span class="whois-loading-spinner" aria-hidden="true"></span>
+          <span>正在查询 WHOIS...</span>
+        </div>
+      `;
+      whoisCopyText = "";
+      whoisCopyBtn.disabled = true;
+    };
+
+    const buildWhoisCopyText = (data) => {
+      if (data.available) {
+        return `Domain Name: ${data.domain || "-"}\nThis domain is available`;
+      }
+      const statuses = Array.isArray(data.status)
+        ? data.status.join(", ")
+        : data.status || "-";
+      const nameServers = Array.isArray(data.nameservers)
+        ? data.nameservers
+        : [];
+      const nsText = nameServers.length
+        ? nameServers.map((ns) => `- ${ns}`).join("\n")
+        : "-";
+      return [
+        `Domain Name: ${data.domain || "-"}`,
+        `Registrar: ${data.registrar || "-"}`,
+        `Creation Date: ${formatDate(data.created)}`,
+        `Expiry Date: ${formatDate(data.expires)}`,
+        `Updated Date: ${formatDate(data.updated)}`,
+        `Domain Status: ${statuses}`,
+        "Name Servers:",
+        nsText,
+      ].join("\n");
+    };
+
+    const copyToClipboard = async (text) => {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+        return;
+      }
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      textarea.setAttribute("readonly", "");
+      textarea.style.position = "fixed";
+      textarea.style.left = "-9999px";
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textarea);
+    };
+
+    const renderWhois = (data) => {
+      if (data.available) {
+        return '<div class="whois-available">👉 This domain is available</div>';
+      }
+
+      const expires = formatDate(data.expires);
+      const expireClass = isExpiringSoon(data.expires) ? "whois-expiring" : "";
+      const statuses = Array.isArray(data.status)
+        ? data.status.join(", ")
+        : data.status || "-";
+      const nameServers = (Array.isArray(data.nameservers) ? data.nameservers : []).filter((ns) => {
+        const value = String(ns || "").trim().toLowerCase().replace(/\.$/, "");
+        return value && !["not.defined", "undefined", "unknown", "none", "n/a", "null", "-"].includes(value);
+      });
+      const nsHtml = nameServers.length
+        ? `<ul class="whois-ns-list">${nameServers
+            .map((ns) => `<li><span class="whois-tag">${escapeHtml(ns)}</span></li>`)
+            .join("")}</ul>`
+        : '<div class="whois-value">-</div>';
+
+      return `
+        <div class="whois-grid">
+          <div class="whois-row"><span class="whois-label">Domain Name</span><span class="whois-value">${escapeHtml(data.domain || "-")}</span></div>
+          <div class="whois-row"><span class="whois-label">Registrar</span><span class="whois-value">${escapeHtml(data.registrar || "-")}</span></div>
+          <div class="whois-row"><span class="whois-label">Creation Date</span><span class="whois-value">${escapeHtml(formatDate(data.created))}</span></div>
+          <div class="whois-row"><span class="whois-label">Expiry Date</span><span class="whois-value ${expireClass}">${escapeHtml(expires)}</span></div>
+          <div class="whois-row"><span class="whois-label">Updated Date</span><span class="whois-value">${escapeHtml(formatDate(data.updated))}</span></div>
+          <div class="whois-row"><span class="whois-label">Domain Status</span><span class="whois-value">${escapeHtml(statuses || "-")}</span></div>
+        </div>
+        <div class="whois-row whois-row-stack"><span class="whois-label">Name Servers</span>${nsHtml}</div>
+      `;
+    };
+
+    window.closeWhoisModal = function () {
+      whoisModal.classList.remove("show");
+      whoisModal.setAttribute("aria-hidden", "true");
+      if (activeButton) {
+        activeButton.setAttribute("aria-expanded", "false");
+      }
+    };
+
+    whoisCopyBtn.addEventListener("click", async () => {
+      if (!whoisCopyText) return;
+      try {
+        await copyToClipboard(whoisCopyText);
+        showMessage("WHOIS 结果已复制", "success");
+      } catch (err) {
+        showMessage("复制失败，请手动复制", "error");
+      }
+    });
+
+    whoisModal.addEventListener("click", (event) => {
+      if (event.target === whoisModal) {
+        window.closeWhoisModal();
+      }
+    });
+
+    domainsList.addEventListener("click", async (event) => {
+      const toggleBtn = event.target.closest(".btn-whois-toggle");
+      if (!toggleBtn) return;
+
+      const domain = (toggleBtn.dataset.domain || "").trim();
+      if (!domain) return;
+
+      if (activeButton && activeButton !== toggleBtn) {
+        setButtonLoading(activeButton, false);
+        activeButton.setAttribute("aria-expanded", "false");
+      }
+      activeButton = toggleBtn;
+      toggleBtn.setAttribute("aria-expanded", "true");
+      setButtonLoading(toggleBtn, true);
+
+      whoisModalTitle.textContent = `WHOIS 查询 - ${domain}`;
+      showWhoisModalLoading();
+      whoisModal.classList.add("show");
+      whoisModal.setAttribute("aria-hidden", "false");
+
+      try {
+        let whoisData = cache.get(domain);
+        if (!whoisData) {
+          const res = await fetch(
+            `/api/whois.php?domain=${encodeURIComponent(domain)}`,
+            { method: "GET" }
+          );
+          whoisData = await res.json();
+          cache.set(domain, whoisData);
+        }
+
+        if (whoisData.error) {
+          whoisModalBody.innerHTML = `<div class="whois-value">${escapeHtml(
+            whoisData.error
+          )}</div>`;
+          whoisCopyText = "";
+          whoisCopyBtn.disabled = true;
+        } else {
+          whoisModalBody.innerHTML = renderWhois(whoisData);
+          whoisCopyText = buildWhoisCopyText(whoisData);
+          whoisCopyBtn.disabled = false;
+        }
+      } catch (err) {
+        whoisModalBody.innerHTML =
+          '<div class="whois-value">WHOIS 查询失败，请稍后重试</div>';
+        whoisCopyText = "";
+        whoisCopyBtn.disabled = true;
+      } finally {
+        setButtonLoading(toggleBtn, false);
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && whoisModal.classList.contains("show")) {
+        window.closeWhoisModal();
+      }
+    });
+  })();
+
   // 显示消息提示
   function showMessage(message, type = "info") {
-    // 移除已存在的消息
-    const existingMsg = document.querySelector(".message-toast");
-    if (existingMsg) {
-      existingMsg.remove();
-    }
+    const oldToasts = document.querySelectorAll(".message-toast");
+    oldToasts.forEach((item) => item.remove());
 
+    const safeType = ["success", "error", "info"].includes(type)
+      ? type
+      : "info";
     const toast = document.createElement("div");
-    toast.className = `message-toast message-${type}`;
-    toast.textContent = message;
+    toast.className = `message-toast message-${safeType}`;
+    toast.innerHTML = `
+      <span class="message-toast-icon" aria-hidden="true"></span>
+      <span class="message-toast-text"></span>
+    `;
+    const text = toast.querySelector(".message-toast-text");
+    if (text) text.textContent = message;
 
-    // 添加样式
-    toast.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 16px 24px;
-            border-radius: 12px;
-            font-weight: 600;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-            z-index: 10000;
-            animation: slideInRight 0.3s ease;
-            backdrop-filter: blur(10px);
-        `;
-
-    if (type === "success") {
-      toast.style.background = "rgba(52, 211, 153, 0.95)";
-      toast.style.color = "white";
-    } else if (type === "error") {
-      toast.style.background = "rgba(239, 68, 68, 0.95)";
-      toast.style.color = "white";
-    } else {
-      toast.style.background = "rgba(59, 130, 246, 0.95)";
-      toast.style.color = "white";
-    }
+    let removed = false;
+    const removeToast = () => {
+      if (removed) return;
+      removed = true;
+      toast.classList.remove("show");
+      toast.classList.add("hide");
+      setTimeout(() => toast.remove(), 260);
+    };
 
     document.body.appendChild(toast);
+    requestAnimationFrame(() => {
+      toast.classList.add("show");
+    });
 
-    // 3秒后自动移除
-    setTimeout(() => {
-      toast.style.animation = "slideOutRight 0.3s ease";
-      setTimeout(() => {
-        toast.remove();
-      }, 300);
-    }, 3000);
+    setTimeout(removeToast, 3200);
   }
-
-  // 添加动画CSS
-  const style = document.createElement("style");
-  style.textContent = `
-        @keyframes slideInRight {
-            from {
-                opacity: 0;
-                transform: translateX(100px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-        
-        @keyframes slideOutRight {
-            from {
-                opacity: 1;
-                transform: translateX(0);
-            }
-            to {
-                opacity: 0;
-                transform: translateX(100px);
-            }
-        }
-        
-        @keyframes fadeOut {
-            from {
-                opacity: 1;
-                transform: scale(1);
-            }
-            to {
-                opacity: 0;
-                transform: scale(0.9);
-            }
-        }
-    `;
-  document.head.appendChild(style);
 
   // 点击模态框背景关闭 - 已禁用，只能通过取消按钮或右上角X关闭
   // document.addEventListener("click", function (e) {
@@ -456,6 +622,10 @@
           result.data.from_email || "";
         const defTo = document.getElementById("default_to_email");
         if (defTo) defTo.value = result.data.default_to_email || "";
+        const testTo = document.getElementById("test_email_to");
+        if (testTo && !testTo.value.trim()) {
+          testTo.value = result.data.default_to_email || "";
+        }
         const ch = (id) => document.getElementById(id);
         if (ch("smtp_host"))
           ch("smtp_host").value = result.data.smtp_host || "";
@@ -471,6 +641,18 @@
     } catch (err) {
       console.error("加载邮件设置失败", err);
     }
+  }
+
+  function bindTestEmailDefaultSync() {
+    const defTo = document.getElementById("default_to_email");
+    const testTo = document.getElementById("test_email_to");
+    if (!defTo || !testTo) return;
+
+    defTo.addEventListener("input", function () {
+      if (!testTo.value.trim()) {
+        testTo.value = defTo.value.trim();
+      }
+    });
   }
 
   window.saveEmailSettings = async function (event) {
@@ -499,6 +681,8 @@
   };
 
   window.sendTestEmail = async function () {
+    const testBtn = document.getElementById("testEmailBtn");
+    const defaultBtnHtml = testBtn ? testBtn.innerHTML : "";
     const to = document.getElementById("test_email_to")?.value?.trim();
     if (!to) {
       showMessage("请先输入测试收件邮箱", "error");
@@ -508,6 +692,13 @@
       }
       return;
     }
+
+    if (testBtn) {
+      testBtn.disabled = true;
+      testBtn.innerHTML =
+        '<span class="btn-loading-spinner" aria-hidden="true"></span><span>发送中...</span>';
+    }
+
     const fd = new FormData();
     fd.append("action", "test_email");
     fd.append("to", to);
@@ -522,10 +713,142 @@
       }
     } catch (err) {
       showMessage("发送失败", "error");
+    } finally {
+      if (testBtn) {
+        testBtn.disabled = false;
+        testBtn.innerHTML = defaultBtnHtml || "发送测试邮件";
+      }
+    }
+  };
+
+  function escapeHtml(value) {
+    return String(value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  function createFooterLinkRow(link = {}) {
+    const row = document.createElement("div");
+    row.className = "footer-link-row";
+    row.innerHTML = `
+      <div class="form-row form-row-three footer-link-row-grid">
+        <div class="form-group">
+          <label>链接名称</label>
+          <input type="text" class="footer-link-name" placeholder="例如：WHOIS查询" value="${escapeHtml(
+            link.name || ""
+          )}">
+        </div>
+        <div class="form-group">
+          <label>链接地址</label>
+          <input type="text" class="footer-link-url" placeholder="https://example.com/{domain}" value="${escapeHtml(
+            link.url || ""
+          )}">
+        </div>
+        <div class="form-group">
+          <label>图标</label>
+          <input type="text" class="footer-link-icon" placeholder="fa-solid fa-globe 或 SVG 代码" value="${escapeHtml(
+            link.icon_class || "fa-solid fa-link"
+          )}">
+        </div>
+      </div>
+      <div class="footer-link-actions">
+        <button type="button" class="btn btn-secondary footer-link-remove">删除</button>
+      </div>
+    `;
+
+    const removeBtn = row.querySelector(".footer-link-remove");
+    removeBtn.addEventListener("click", () => row.remove());
+    return row;
+  }
+
+  window.addFooterLinkRow = function (link = null) {
+    const container = document.getElementById("footerLinksContainer");
+    if (!container) return;
+    if (container.querySelectorAll(".footer-link-row").length >= 3) {
+      showMessage("最多只允许 3 个页脚链接", "error");
+      return;
+    }
+    container.appendChild(createFooterLinkRow(link || {}));
+  };
+
+  async function loadFooterSettingsIfNeeded() {
+    const form = document.getElementById("footerSettingsForm");
+    if (!form) return;
+    const container = document.getElementById("footerLinksContainer");
+    if (!container) return;
+
+    try {
+      const fd = new FormData();
+      fd.append("action", "get_footer_settings");
+      appendCsrfToken(fd);
+      const res = await fetch(ADMIN_ENDPOINT, { method: "POST", body: fd });
+      const result = await res.json();
+      if (!result.success || !result.data) return;
+
+      container.innerHTML = "";
+      const links = Array.isArray(result.data.footer_links)
+        ? result.data.footer_links.slice(0, 3)
+        : [];
+      if (links.length === 0) {
+        window.addFooterLinkRow();
+      } else {
+        links.forEach((link) => window.addFooterLinkRow(link));
+      }
+
+      const analytics = document.getElementById("footer_analytics_code");
+      if (analytics) analytics.value = result.data.footer_analytics_code || "";
+    } catch (err) {
+      console.error("加载页脚设置失败", err);
+    }
+  }
+
+  window.saveFooterSettings = async function (event) {
+    event.preventDefault();
+    const form = document.getElementById("footerSettingsForm");
+    if (!form) return;
+
+    const rows = Array.from(document.querySelectorAll(".footer-link-row"));
+    const links = rows.map((row) => ({
+      name: row.querySelector(".footer-link-name")?.value?.trim() || "",
+      url: row.querySelector(".footer-link-url")?.value?.trim() || "",
+      icon_class:
+        row.querySelector(".footer-link-icon")?.value?.trim() ||
+        "fa-solid fa-link",
+    }));
+
+    const fd = new FormData();
+    fd.append("action", "save_footer_settings");
+    fd.append("footer_links_json", JSON.stringify(links));
+    fd.append(
+      "footer_analytics_code",
+      document.getElementById("footer_analytics_code")?.value || ""
+    );
+    appendCsrfToken(fd);
+
+    const btn = form.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    btn.textContent = "保存中...";
+    try {
+      const res = await fetch(ADMIN_ENDPOINT, { method: "POST", body: fd });
+      const result = await res.json();
+      if (result.success) {
+        showMessage(result.message || "页脚设置已保存", "success");
+      } else {
+        showMessage(result.message || "保存失败", "error");
+      }
+    } catch (err) {
+      showMessage("保存失败", "error");
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "保存设置";
     }
   };
 
   // 初始：尝试加载邮件设置
+  bindTestEmailDefaultSync();
   loadEmailSettingsIfNeeded();
 
   // 加载站点设置
@@ -579,6 +902,7 @@
   };
 
   loadSiteSettingsIfNeeded();
+  loadFooterSettingsIfNeeded();
 
   // 管理后台主题切换功能
   (function initAdminTheme() {

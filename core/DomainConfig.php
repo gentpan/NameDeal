@@ -122,10 +122,18 @@ class DomainConfig
      */
     public function get($key, $default = null)
     {
-        // 如果是 site_name，从站点设置中读取
-        if ($key === 'site_name') {
+        $siteSettingKeys = [
+            'site_name',
+            'footer_links',
+            'footer_whois_url',
+            'footer_xifeng_url',
+            'footer_more_domains_url',
+            'footer_github_url',
+            'footer_analytics_code',
+        ];
+        if (in_array($key, $siteSettingKeys, true)) {
             $siteSettings = $this->getSiteSettings();
-            return $siteSettings['site_name'] ?? $default;
+            return $siteSettings[$key] ?? $default;
         }
         return isset($this->domainConfig[$key]) ? $this->domainConfig[$key] : $default;
     }

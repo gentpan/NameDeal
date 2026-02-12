@@ -87,7 +87,11 @@ class VerificationCode
         require_once __DIR__ . '/EmailHandler.php';
         $emailTemplates = new EmailTemplates($domainConfig);
         $message = $emailTemplates->getVerificationCodeTemplate($code);
-        $siteName = $domainConfig ? $domainConfig->get('site_name', 'DOMAIN.LS') : 'DOMAIN.LS';
+        $siteNameRaw = $domainConfig ? $domainConfig->get('site_name', 'NameDeal') : 'NameDeal';
+        $siteName = trim(str_replace('域名停放', '', (string)$siteNameRaw));
+        if ($siteName === '') {
+            $siteName = 'NameDeal';
+        }
         $subject = htmlspecialchars($siteName, ENT_QUOTES, 'UTF-8') . ' 验证码';
 
         // 验证码发送到客户填写的邮箱

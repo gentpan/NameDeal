@@ -9,6 +9,7 @@
 
     <!-- 引入外部 CSS -->
     <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="https://icons.bluecdn.com/fontawesome-pro@7.1.0/css/all.min.css" referrerpolicy="no-referrer">
 
     <style>
         /* 从 PHP 传递主题颜色，如果设置了就覆盖默认的 #0066FC */
@@ -31,7 +32,7 @@
         <div class="header-row">
             <h1>
                 <span class="h1-chinese">域名，让品牌更有价值。</span>
-                <span class="h1-english">Domains that add value to your brand.</span>
+                <span class="h1-english">Premium domains. Powerful brands.</span>
             </h1>
             <div class="logo">
                 <svg viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
@@ -46,6 +47,26 @@
         <div class="domain">
             <span class="domain-label">D<span class="domain-label-o">o</span>main</span>
             <span class="domain-name"><?php echo strtoupper(htmlspecialchars($currentDomain)); ?></span>
+            <button type="button" class="home-whois-toggle" id="homeWhoisToggle" data-domain="<?php echo htmlspecialchars($currentDomain, ENT_QUOTES, 'UTF-8'); ?>" aria-expanded="false" title="WHOIS 一键查询">
+                <svg class="home-whois-icon" viewBox="0 0 1024 1024" aria-hidden="true" focusable="false">
+                    <path d="M707.621926 350.549333l-45.037037 6.637037C636.416 179.465481 567.580444 60.681481 498.839704 60.681481c-68.077037 0-136.343704 116.508444-163.081482 291.802075l-44.980148-6.864593C320.587852 150.243556 399.701333 15.17037 498.839704 15.17037c99.972741 0 179.617185 137.462519 208.782222 335.378963zM290.664296 677.641481l44.999111-6.826666c26.661926 175.653926 95.004444 292.503704 163.176297 292.503704 68.266667 0 136.722963-117.229037 163.271111-293.281186l44.999111 6.788741C677.546667 872.997926 598.224593 1008.82963 498.839704 1008.82963c-99.252148 0-178.460444-135.433481-208.175408-331.188149z" fill="currentColor"></path>
+                    <path d="M512 1008.82963C237.605926 1008.82963 15.17037 786.394074 15.17037 512 15.17037 237.605926 237.605926 15.17037 512 15.17037 786.394074 15.17037 1008.82963 237.605926 1008.82963 512c0 274.394074-222.435556 496.82963-496.82963 496.82963z m0-45.511111c249.249185 0 451.318519-202.069333 451.318519-451.318519S761.249185 60.681481 512 60.681481 60.681481 262.750815 60.681481 512 262.750815 963.318519 512 963.318519z" fill="currentColor"></path>
+                    <path d="M64.265481 376.737185v-45.511111H959.715556v45.511111H64.284444zM959.715556 647.262815v45.511111H64.284444v-45.511111H959.715556z" fill="currentColor"></path>
+                    <path d="M118.139259 429.131852h31.288889l31.744 128.720592h0.948148l33.431704-128.701629h28.672l33.431704 128.701629h0.948148l31.762963-128.701629h31.288889l-48.82963 169.244444h-29.392593l-32.957629-127.29837h-0.948148l-33.185185 127.29837H166.72237L118.120296 429.131852z m241.284741 0h27.742815v70.656h85.807407V429.131852h27.723852v169.244444h-27.723852v-74.903703h-85.807407v74.903703h-27.742815V429.131852z m249.609481-3.299556c25.903407 0 46.288593 8.362667 61.155556 25.125926 14.222222 15.796148 21.333333 36.807111 21.333333 63.051852 0 25.903407-7.111111 46.838519-21.333333 62.805333-14.866963 16.592593-35.252148 24.89837-61.155556 24.898371-25.92237 0-46.307556-8.38163-61.155555-25.125926-14.070519-15.966815-21.105778-36.826074-21.105778-62.577778 0-25.92237 7.035259-46.857481 21.105778-62.824296 14.52563-16.914963 34.910815-25.353481 61.155555-25.353482z m0 24.405334c-17.389037 0-30.985481 5.935407-40.77037 17.787259-9.178074 11.207111-13.748148 26.548148-13.748148 45.985185 0 19.26637 4.570074 34.512593 13.748148 45.738667 9.481481 11.700148 23.058963 17.540741 40.77037 17.54074 17.540741 0 31.04237-5.613037 40.523852-16.820148 9.329778-11.226074 13.994667-26.718815 13.994667-46.459259 0-19.759407-4.664889-35.403852-13.994667-46.933333-9.329778-11.226074-22.831407-16.839111-40.523852-16.839111z m108.562963-21.086815h27.723852v169.244444h-27.723852V429.131852z m120.642371-3.318519c20.081778 0 35.65037 4.096 46.705778 12.325926 11.851852 8.836741 18.640593 22.509037 20.385185 40.997926h-27.496297c-2.37037-10.42963-6.712889-17.938963-13.046518-22.509037-6.011259-4.589037-15.322074-6.883556-27.97037-6.883555-10.752 0-18.887111 1.517037-24.405334 4.513185-6.959407 3.470222-10.42963 9.310815-10.429629 17.54074 0 7.414519 3.944296 13.179259 11.851851 17.294223 3.792593 2.048 13.425778 5.537185 28.918519 10.429629 22.281481 6.788741 37.05363 12.325926 44.316444 16.592593 14.696296 8.685037 22.053926 20.859259 22.053926 36.503704 0 15.17037-5.935407 27.173926-17.787259 36.029629-12.003556 8.685037-28.747852 13.046519-50.251852 13.046519-20.859259 0-37.129481-4.039111-48.829629-12.098371-14.373926-9.955556-22.110815-25.675852-23.22963-47.160888h27.496296c1.896296 12.951704 6.485333 22.110815 13.748148 27.496296 6.807704 4.892444 17.066667 7.338667 30.814815 7.338666 12.325926 0 22.129778-2.048 29.392593-6.162962 7.281778-4.41837 10.903704-10.05037 10.903704-16.820149 0-9.007407-5.290667-16.118519-15.872-21.333333-3.792593-1.896296-14.791111-5.613037-32.95763-11.150222-21.010963-6.637037-33.962667-11.377778-38.874074-14.222222-12.951704-7.736889-19.437037-19.114667-19.437037-34.133334 0-15.17037 6.314667-26.927407 18.962963-35.309037 11.700148-8.229926 26.699852-12.325926 45.037037-12.325926z" fill="currentColor"></path>
+                </svg>
+                <span class="home-whois-spinner" aria-hidden="true"></span>
+            </button>
+        </div>
+        <div class="home-whois-modal" id="homeWhoisModal" aria-hidden="true">
+            <div class="home-whois-modal-content" role="dialog" aria-modal="true" aria-labelledby="homeWhoisTitle">
+                <div class="home-whois-modal-header">
+                    <h3 id="homeWhoisTitle">WHOIS 查询结果</h3>
+                    <button type="button" class="home-whois-modal-close" id="homeWhoisClose" aria-label="关闭">×</button>
+                </div>
+                <div class="home-whois-modal-body">
+                    <div class="home-whois-content" id="homeWhoisContent"></div>
+                </div>
+            </div>
         </div>
 
         <div class="description">
@@ -150,7 +171,7 @@
                             </label>
                             <div class="cf-security-badge">
                                 <div class="cf-button-text-wrapper">
-                                    <span class="cf-button-text">DOMAIN.LS</span>
+                                    <span class="cf-button-text">NAMEDEAL</span>
                                     <span class="cf-button-text">SECURITY</span>
                                 </div>
                                 <div class="cf-verifying">
@@ -245,7 +266,7 @@
 
             <div class="footer-content">
                 <div class="footer-copyright">
-                    <p>&copy; <?php echo date('Y'); ?> <?php echo !empty($siteName) ? htmlspecialchars($siteName) : 'DOMAIN.LS'; ?> 域名列表</p>
+                    <p>&copy; <?php echo date('Y'); ?> <?php echo !empty($siteName) ? htmlspecialchars($siteName) : 'NameDeal'; ?></p>
                     <p class="footer-copyright-encoded" data-copyright="<?php echo base64_encode('Powered by 西风 - Copyright protection - github.com/gentpan/namedeal'); ?>" style="display: none;"></p>
                 </div>
 
@@ -260,30 +281,58 @@
                 </div>
 
                 <div class="footer-links">
-                    <a href="https://domain.ls" target="_blank" rel="noopener" title="域名列表">
-                        <svg class="footer-icon" viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
-                            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z" />
-                        </svg>
-                        更多域名
-                    </a>
-                    <a href="https://xifeng.net" target="_blank" rel="noopener" title="西风网">
-                        <svg class="footer-icon" viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
-                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" />
-                            <path d="M12 8v4l3 3" />
-                        </svg>
-                        西风
-                    </a>
+                    <?php
+                    $encodedDomain = rawurlencode((string) $currentDomain);
+                    $defaultFooterLinks = [
+                        ['name' => 'WHOIS查询', 'url' => $footerWhoisUrl ?? 'https://bluewhois.com/{domain}', 'icon_class' => 'fa-solid fa-magnifying-glass'],
+                        ['name' => '西风', 'url' => $footerXifengUrl ?? 'https://xifeng.net', 'icon_class' => 'fa-solid fa-wind'],
+                        ['name' => '更多域名', 'url' => $footerMoreDomainsUrl ?? 'https://domain.ls', 'icon_class' => 'fa-solid fa-globe'],
+                    ];
+                    $renderFooterLinks = (isset($footerLinks) && is_array($footerLinks) && !empty($footerLinks)) ? array_slice($footerLinks, 0, 3) : $defaultFooterLinks;
+
+                    foreach ($renderFooterLinks as $item):
+                        $name = trim((string)($item['name'] ?? ''));
+                        $urlTemplate = trim((string)($item['url'] ?? ''));
+                        $iconClass = trim((string)($item['icon_class'] ?? 'fa-solid fa-link'));
+
+                        if ($name === '' || $urlTemplate === '') {
+                            continue;
+                        }
+
+                        $href = strpos($urlTemplate, '{domain}') !== false
+                            ? str_replace('{domain}', $encodedDomain, $urlTemplate)
+                            : $urlTemplate;
+                        if (!filter_var($href, FILTER_VALIDATE_URL)) {
+                            continue;
+                        }
+
+                        // 判断图标类型：SVG 代码 或 FontAwesome 类名
+                        $isSvg = (stripos(trim($iconClass), '<svg') === 0 && stripos($iconClass, '</svg>') !== false);
+                        $isFa = preg_match('/^(fa-(solid|regular|brands|duotone|thin|light)\s+)?fa-[a-z0-9-]+(?:\s+fa-[a-z0-9-]+)*$/i', $iconClass);
+                        if (!$isSvg && !$isFa) {
+                            $iconClass = 'fa-solid fa-link';
+                            $isFa = true;
+                            $isSvg = false;
+                        }
+                        // SVG 安全检查
+                        if ($isSvg && preg_match('/<script|on\w+\s*=|javascript:/i', strtolower($iconClass))) {
+                            $iconClass = 'fa-solid fa-link';
+                            $isFa = true;
+                            $isSvg = false;
+                        }
+                    ?>
+                        <a href="<?php echo htmlspecialchars($href, ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener" title="<?php echo htmlspecialchars($name, ENT_QUOTES, 'UTF-8'); ?>">
+                            <?php if ($isSvg): ?>
+                                <span class="footer-icon footer-icon-svg" aria-hidden="true"><?php echo $iconClass; ?></span>
+                            <?php else: ?>
+                                <i class="footer-icon <?php echo htmlspecialchars($iconClass, ENT_QUOTES, 'UTF-8'); ?>" aria-hidden="true"></i>
+                            <?php endif; ?>
+                            <?php echo htmlspecialchars($name, ENT_QUOTES, 'UTF-8'); ?>
+                        </a>
+                    <?php endforeach; ?>
                     <a href="https://github.com/gentpan/namedeal" target="_blank" rel="noopener" title="GitHub">
-                        <svg class="footer-icon" viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
-                            <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.167 22 16.418 22 12c0-5.523-4.477-10-10-10z" />
-                        </svg>
+                        <i class="footer-icon fa-brands fa-github" aria-hidden="true"></i>
                         GitHub
-                    </a>
-                    <a href="https://bluewhois.com/<?php echo urlencode($currentDomain); ?>" target="_blank" rel="noopener" title="WHOIS查询">
-                        <svg class="footer-icon" viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
-                            <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
-                        </svg>
-                        WHOIS查询
                     </a>
                 </div>
 
@@ -365,6 +414,9 @@
 
     <!-- 引入外部 JavaScript -->
     <script src="assets/js/main.js"></script>
+    <?php if (!empty($footerAnalyticsCode)): ?>
+        <?php echo $footerAnalyticsCode; ?>
+    <?php endif; ?>
 </body>
 
 </html>

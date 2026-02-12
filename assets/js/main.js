@@ -280,6 +280,7 @@
     ".price-verification-wrapper"
   );
   const priceReference = document.querySelector(".price-reference");
+  let lastVerificationWidth = 260;
 
   // 设置验证区域、输入框和按钮区域宽度与参考价格一致
   function setVerificationWidth() {
@@ -324,7 +325,6 @@
     if (isVerificationVisible) {
       // 验证区域显示时，需要获取验证区域的自然宽度
       // 临时移除宽度限制以获取真实宽度
-      const originalVerificationWidth = verificationWrapper.style.width;
       verificationWrapper.style.width = "auto";
       verificationWrapper.style.display = "flex";
       verificationWrapper.style.opacity = "1";
@@ -332,13 +332,35 @@
       // 强制重排以获取实际宽度
       void verificationWrapper.offsetWidth;
 
-      const verificationWidth = verificationWrapper.offsetWidth || 300; // 默认300px
+      const cfVerificationEl = document.getElementById("cfVerification");
+      const measuredVerificationWidth = Math.round(
+        (cfVerificationEl && cfVerificationEl.getBoundingClientRect
+          ? cfVerificationEl.getBoundingClientRect().width
+          : 0) ||
+          verificationWrapper.offsetWidth ||
+          verificationWrapper.scrollWidth ||
+          0
+      );
+
+      if (measuredVerificationWidth > 0) {
+        lastVerificationWidth = measuredVerificationWidth;
+      }
+
+      // 兜底宽度优先使用最近一次测量值，避免随机回退导致输入框骤缩
+      let verificationWidth =
+        measuredVerificationWidth > 0 ? measuredVerificationWidth : lastVerificationWidth;
+      verificationWidth = Math.max(220, Math.min(verificationWidth, Math.floor(referenceWidth * 0.45)));
 
       // 价格输入框宽度 = 参考价格宽度 - 验证区域宽度 - gap
-      const inputWidth = referenceWidth - verificationWidth - gap;
+      let inputWidth = referenceWidth - verificationWidth - gap;
+      const minInputWidth = Math.max(280, Math.floor(referenceWidth * 0.55));
+      if (inputWidth < minInputWidth) {
+        inputWidth = minInputWidth;
+        verificationWidth = Math.max(220, referenceWidth - inputWidth - gap);
+      }
 
       if (priceInputWrapper) {
-        const finalInputWidth = Math.max(inputWidth, 200);
+        const finalInputWidth = Math.max(inputWidth, 280);
         priceInputWrapper.style.setProperty(
           "width",
           finalInputWidth + "px",
@@ -387,7 +409,7 @@
       }
 
       if (verificationWrapper) {
-        verificationWrapper.style.width = "0px";
+        verificationWrapper.style.setProperty("width", "0px", "important");
       }
     }
 
@@ -561,7 +583,7 @@
           );
           if (cfButtonTextWrapper) {
             cfButtonTextWrapper.innerHTML =
-              '<span class="cf-button-text">DOMAIN.LS</span><span class="cf-button-text">SECURITY</span>';
+              '<span class="cf-button-text">NAMEDEAL</span><span class="cf-button-text">SECURITY</span>';
           }
         }
         confirmPriceBtn.disabled = true;
@@ -672,7 +694,7 @@
       );
       if (cfButtonTextWrapper) {
         cfButtonTextWrapper.innerHTML =
-          '<span class="cf-button-text">DOMAIN.LS</span><span class="cf-button-text">SECURITY</span>';
+          '<span class="cf-button-text">NAMEDEAL</span><span class="cf-button-text">SECURITY</span>';
       }
     }
 
@@ -684,21 +706,12 @@
       priceInputWrapper.classList.remove("full-width");
     }
 
-    // 如果输入框有值，显示验证区域
-    if (
-      verificationWrapper &&
-      offerPriceInput.value.trim() &&
-      parseFloat(offerPriceInput.value.trim()) > 0
-    ) {
-      verificationWrapper.classList.remove("collapsed");
-      if (cfVerification) {
-        cfVerification.style.display = "flex";
-      }
-      setTimeout(function () {
-        setVerificationWidth();
-      }, 10);
-    } else if (verificationWrapper) {
+    // 点击“修改价格”后先保持输入框完整宽度，等待用户重新输入再显示验证区域
+    if (verificationWrapper) {
       verificationWrapper.classList.add("collapsed");
+      if (cfVerification) {
+        cfVerification.style.display = "none";
+      }
       setTimeout(function () {
         setVerificationWidth();
       }, 10);
@@ -852,10 +865,7 @@ window.humanVerified = false;
 
       // 禁用按钮，显示发送中状态
       verifyEmailBtn.disabled = true;
-      const verifyBtnText = verifyEmailBtn.querySelector(".text");
-      if (verifyBtnText) {
-        verifyBtnText.textContent = "发送中...";
-      }
+      verifyEmailBtn.classList.add("is-loading");
 
       // 自动发送验证码
       const formData = new FormData();
@@ -870,9 +880,7 @@ window.humanVerified = false;
         .then((data) => {
           // 恢复按钮状态
           verifyEmailBtn.disabled = false;
-          if (verifyBtnText) {
-            verifyBtnText.textContent = "验证";
-          }
+          verifyEmailBtn.classList.remove("is-loading");
 
           if (data.success) {
             showMessage(data.message, "success");
@@ -919,9 +927,7 @@ window.humanVerified = false;
         .catch((error) => {
           showMessage("发送失败，请重试", "error");
           verifyEmailBtn.disabled = false;
-          if (verifyBtnText) {
-            verifyBtnText.textContent = "验证";
-          }
+          verifyEmailBtn.classList.remove("is-loading");
         });
     });
   }
@@ -954,14 +960,9 @@ window.humanVerified = false;
       return;
     }
 
-    // 禁用按钮
+    // 禁用按钮，显示圆圈加载
     sendCodeBtn.disabled = true;
-    const sendBtnText = sendCodeBtn.querySelector(".text");
-    if (sendBtnText) {
-      sendBtnText.textContent = "发送中...";
-    } else {
-      sendCodeBtn.textContent = "发送中...";
-    }
+    sendCodeBtn.classList.add("is-loading");
 
     const formData = new FormData();
     formData.append("action", "send_code");
@@ -1005,13 +1006,8 @@ window.humanVerified = false;
           if (data.resend_after && data.resend_after > 0) {
             startResendCountdown(data.resend_after);
           } else {
-            sendCodeBtn.disabled = false;
-            const sendBtnText = sendCodeBtn.querySelector(".text");
-            if (sendBtnText) {
-              sendBtnText.textContent = "发送验证码";
-            } else {
-              sendCodeBtn.textContent = "发送验证码";
-            }
+          sendCodeBtn.disabled = false;
+          sendCodeBtn.classList.remove("is-loading");
           }
         }
       })
@@ -1023,12 +1019,7 @@ window.humanVerified = false;
           resendTimerInterval = null;
         }
         sendCodeBtn.disabled = false;
-        const sendBtnText = sendCodeBtn.querySelector(".text");
-        if (sendBtnText) {
-          sendBtnText.textContent = "发送验证码";
-        } else {
-          sendCodeBtn.textContent = "发送验证码";
-        }
+        sendCodeBtn.classList.remove("is-loading");
       });
   });
 
@@ -1405,7 +1396,7 @@ window.humanVerified = false;
       cfVerification.classList.remove("verifying", "verified");
       if (cfButtonTextWrapper) {
         cfButtonTextWrapper.innerHTML =
-          '<span class="cf-button-text">DOMAIN.LS</span><span class="cf-button-text">SECURITY</span>';
+          '<span class="cf-button-text">NAMEDEAL</span><span class="cf-button-text">SECURITY</span>';
       }
       // 禁用价格确认按钮
       const confirmPriceBtn = document.getElementById("confirmPriceBtn");
@@ -1474,7 +1465,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // 禁用提交按钮
     submitBtn.disabled = true;
-    submitBtn.textContent = "提交中...";
+    submitBtn.classList.add("is-loading");
     messageBox.style.display = "none";
 
     // 收集表单数据
@@ -1547,10 +1538,141 @@ document.addEventListener("DOMContentLoaded", function () {
       })
       .finally(() => {
         submitBtn.disabled = false;
-        submitBtn.textContent = "提交购买咨询";
+        submitBtn.classList.remove("is-loading");
       });
   });
 });
+
+// 首页域名 WHOIS 一键查询
+(function () {
+  "use strict";
+
+  const toggleBtn = document.getElementById("homeWhoisToggle");
+  const modal = document.getElementById("homeWhoisModal");
+  const closeBtn = document.getElementById("homeWhoisClose");
+  const content = document.getElementById("homeWhoisContent");
+  if (!toggleBtn || !modal || !content) return;
+
+  let cache = null;
+
+  const escapeHtml = (value) =>
+    String(value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+
+  const formatDate = (value) => {
+    if (!value) return "-";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return String(value);
+    return date.toISOString().slice(0, 10);
+  };
+
+  const isExpiringSoon = (value) => {
+    if (!value) return false;
+    const expiry = new Date(value);
+    if (Number.isNaN(expiry.getTime())) return false;
+    const diff = expiry.getTime() - Date.now();
+    return diff > 0 && diff <= 30 * 24 * 60 * 60 * 1000;
+  };
+
+  const setButtonLoading = (isLoading) => {
+    toggleBtn.classList.toggle("is-loading", isLoading);
+    toggleBtn.disabled = isLoading;
+  };
+
+  const openModal = () => {
+    modal.classList.add("show");
+    modal.setAttribute("aria-hidden", "false");
+    toggleBtn.setAttribute("aria-expanded", "true");
+    document.body.classList.add("home-whois-modal-open");
+  };
+
+  const closeModal = () => {
+    modal.classList.remove("show");
+    modal.setAttribute("aria-hidden", "true");
+    toggleBtn.setAttribute("aria-expanded", "false");
+    document.body.classList.remove("home-whois-modal-open");
+  };
+
+  const renderWhois = (data) => {
+    if (data.available) {
+      return '<div class="home-whois-available">👉 This domain is available</div>';
+    }
+
+    const statuses = Array.isArray(data.status)
+      ? data.status.join(", ")
+      : data.status || "-";
+    const nameServers = (Array.isArray(data.nameservers) ? data.nameservers : []).filter((ns) => {
+      const value = String(ns || "").trim().toLowerCase().replace(/\.$/, "");
+      return value && !["not.defined", "undefined", "unknown", "none", "n/a", "null", "-"].includes(value);
+    });
+    const expires = formatDate(data.expires);
+    const expireClass = isExpiringSoon(data.expires) ? "home-whois-expiring" : "";
+    const nsHtml = nameServers.length
+      ? `<ul class="home-whois-ns-list">${nameServers
+          .map((ns) => `<li><span class="home-whois-tag">${escapeHtml(ns)}</span></li>`)
+          .join("")}</ul>`
+      : '<div class="home-whois-value">-</div>';
+
+    return `
+      <div class="home-whois-grid">
+        <div class="home-whois-row"><span class="home-whois-label">Domain Name</span><span class="home-whois-value">${escapeHtml(data.domain || "-")}</span></div>
+        <div class="home-whois-row"><span class="home-whois-label">Registrar</span><span class="home-whois-value">${escapeHtml(data.registrar || "-")}</span></div>
+        <div class="home-whois-row"><span class="home-whois-label">Creation Date</span><span class="home-whois-value">${escapeHtml(formatDate(data.created))}</span></div>
+        <div class="home-whois-row"><span class="home-whois-label">Expiry Date</span><span class="home-whois-value ${expireClass}">${escapeHtml(expires)}</span></div>
+        <div class="home-whois-row"><span class="home-whois-label">Updated Date</span><span class="home-whois-value">${escapeHtml(formatDate(data.updated))}</span></div>
+        <div class="home-whois-row"><span class="home-whois-label">Domain Status</span><span class="home-whois-value">${escapeHtml(statuses)}</span></div>
+      </div>
+      <div class="home-whois-row home-whois-row-stack"><span class="home-whois-label">Name Servers</span>${nsHtml}</div>
+    `;
+  };
+
+  toggleBtn.addEventListener("click", async function () {
+    const domain = (toggleBtn.dataset.domain || "").trim();
+    if (!domain) return;
+
+    setButtonLoading(true);
+    content.innerHTML =
+      '<div class="home-whois-loading"><span class="home-whois-loading-spinner" aria-hidden="true"></span><span>Loading WHOIS...</span></div>';
+    openModal();
+
+    try {
+      if (!cache) {
+        const res = await fetch(`/api/whois.php?domain=${encodeURIComponent(domain)}`);
+        cache = await res.json();
+      }
+
+      if (cache.error) {
+        content.innerHTML = `<div class="home-whois-line">${escapeHtml(cache.error)}</div>`;
+      } else {
+        content.innerHTML = renderWhois(cache);
+      }
+    } catch (error) {
+      content.innerHTML = '<div class="home-whois-line">WHOIS 查询失败，请稍后重试</div>';
+    } finally {
+      setButtonLoading(false);
+    }
+  });
+
+  if (closeBtn) {
+    closeBtn.addEventListener("click", closeModal);
+  }
+
+  modal.addEventListener("click", (event) => {
+    if (event.target === modal) {
+      closeModal();
+    }
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && modal.classList.contains("show")) {
+      closeModal();
+    }
+  });
+})();
 
 // 显示消息提示
 function showMessage(message, type) {
