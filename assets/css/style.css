@@ -2048,6 +2048,7 @@ body.home-whois-modal-open {
   justify-content: center;
   font-size: 16px;
   line-height: 1;
+  color: inherit;
   flex-shrink: 0;
   opacity: 0.7;
   transition: var(--transition);
@@ -2056,13 +2057,23 @@ body.home-whois-modal-open {
 .footer-links a .footer-icon-svg {
   display: inline-flex;
   align-items: center;
+  color: inherit;
   line-height: 0;
 }
 
 .footer-links a .footer-icon-svg svg {
   width: 16px;
   height: 16px;
+  color: inherit;
   fill: currentColor;
+}
+
+.footer-links a .footer-icon-svg svg [fill]:not([fill="none"]) {
+  fill: currentColor !important;
+}
+
+.footer-links a .footer-icon-svg svg [stroke]:not([stroke="none"]) {
+  stroke: currentColor !important;
 }
 
 .footer-links a:hover {

@@ -9,7 +9,7 @@
 
     <!-- 引入外部 CSS -->
     <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="https://icons.bluecdn.com/fontawesome-pro@7.1.0/css/all.min.css" referrerpolicy="no-referrer">
+    <link rel="stylesheet" href="https://icons.bluecdn.com/fontawesome-pro@7.2.0/css/all.min.css" referrerpolicy="no-referrer">
 
     <style>
         /* 从 PHP 传递主题颜色，如果设置了就覆盖默认的 #0066FC */
@@ -283,6 +283,29 @@
                 <div class="footer-links">
                     <?php
                     $encodedDomain = rawurlencode((string) $currentDomain);
+                    $normalizeFooterSvgIcon = static function ($svgCode) {
+                        $svg = trim((string)$svgCode);
+                        if ($svg === '') {
+                            return '';
+                        }
+
+                        // 移除内联 style，避免覆盖链接 hover 颜色
+                        $svg = preg_replace('/\sstyle\s*=\s*(["\']).*?\1/si', '', $svg);
+
+                        // 统一 fill/stroke 为 currentColor，保留 none
+                        $svg = preg_replace_callback('/\sfill\s*=\s*(["\'])(.*?)\1/si', static function ($m) {
+                            $value = strtolower(trim((string)$m[2]));
+                            return $value === 'none' ? ' fill="none"' : ' fill="currentColor"';
+                        }, $svg);
+
+                        $svg = preg_replace_callback('/\sstroke\s*=\s*(["\'])(.*?)\1/si', static function ($m) {
+                            $value = strtolower(trim((string)$m[2]));
+                            return $value === 'none' ? ' stroke="none"' : ' stroke="currentColor"';
+                        }, $svg);
+
+                        return $svg;
+                    };
+
                     $defaultFooterLinks = [
                         ['name' => 'WHOIS查询', 'url' => $footerWhoisUrl ?? 'https://bluewhois.com/{domain}', 'icon_class' => 'fa-solid fa-magnifying-glass'],
                         ['name' => '西风', 'url' => $footerXifengUrl ?? 'https://xifeng.net', 'icon_class' => 'fa-solid fa-wind'],
@@ -319,6 +342,9 @@
                             $iconClass = 'fa-solid fa-link';
                             $isFa = true;
                             $isSvg = false;
+                        }
+                        if ($isSvg) {
+                            $iconClass = $normalizeFooterSvgIcon($iconClass);
                         }
                     ?>
                         <a href="<?php echo htmlspecialchars($href, ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener" title="<?php echo htmlspecialchars($name, ENT_QUOTES, 'UTF-8'); ?>">
