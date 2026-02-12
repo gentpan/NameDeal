@@ -1,5 +1,14 @@
 # NameDeal
 
+[![Version](https://img.shields.io/badge/version-v1.1.0-0A66C2.svg?style=for-the-badge)](https://github.com/gentpan/NameDeal)
+[![PHP](https://img.shields.io/badge/PHP-8.1%2B-777BB4.svg?style=for-the-badge&logo=php&logoColor=white)](https://www.php.net/)
+[![SQLite](https://img.shields.io/badge/SQLite-Enabled-003B57.svg?style=for-the-badge&logo=sqlite&logoColor=white)](https://www.sqlite.org/)
+[![License](https://img.shields.io/badge/license-MIT-16A34A.svg?style=for-the-badge)](./LICENSE)
+[![Status](https://img.shields.io/badge/status-Production_Ready-111827.svg?style=for-the-badge)](https://github.com/gentpan/NameDeal)
+
+> 当前版本：`v1.1.0`  
+> 最后更新时间：`2026-02-13`
+
 一个轻量的 PHP 域名停放与询盘管理系统，支持：
 
 - 多域名配置与停放展示
@@ -67,6 +76,20 @@
 - CSS/JS/图片：`Cache-Control: public, max-age=604800`（7 天）
 - 频繁变更资源建议带版本号（如 `style.css?v=20260213`）避免缓存未更新
 - `data/`、`core/` 必须禁止 Web 直接访问
+
+## 最近更新（Changelog）
+
+### 2026-02-13 · v1.1.0
+
+- 修复深色模式下邮件模板展示问题，并同步前后台相关更新。
+- 新增页脚图标固定尺寸规则，统一 SVG 与 Font Awesome 渲染尺寸。
+- 新增 Nginx/Apache 静态化与伪静态配置说明，补充缓存与安全建议。
+
+### 2026-02-12 · v1.0.0
+
+- 完成开源基线整理：项目更名为 NameDeal，清理并统一 GitHub 仓库链接。
+- 加固后台安全能力（密码哈希、CSRF 等基础防护）。
+- 提供多域名停放、询盘表单、邮箱验证码与后台管理基础功能。
 
 ## 安全说明
 
