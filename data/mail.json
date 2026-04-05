@@ -1,0 +1,16 @@
+{
+  "provider": "none",
+  "from_email": "noreply@domain.ls",
+  "from_name": "DOMAIN.LS",
+  "to_email": "contact@domain.ls",
+  "resend": {
+    "api_key": ""
+  },
+  "smtp": {
+    "host": "",
+    "port": 465,
+    "encryption": "ssl",
+    "username": "",
+    "password": ""
+  }
+}
