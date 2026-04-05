@@ -1,0 +1,66 @@
+{
+  "domain.ls": {
+    "domain": "domain.ls",
+    "handle": "DLS-20210612",
+    "port43": "whois.nic.ls",
+    "registrar": "DOMAIN.LS Registry",
+    "status": [
+      "active",
+      "ok"
+    ],
+    "nameservers": [
+      "ns1.domain.ls",
+      "ns2.domain.ls"
+    ],
+    "events": {
+      "registration": "2021-06-12",
+      "expiration": "2027-06-12",
+      "last_changed": "2026-02-17"
+    },
+    "raw": {
+      "remark": "local fallback sample"
+    }
+  },
+  "brand.ls": {
+    "domain": "brand.ls",
+    "handle": "BLS-20200301",
+    "port43": "whois.nic.ls",
+    "registrar": "DOMAIN.LS Registry",
+    "status": [
+      "active"
+    ],
+    "nameservers": [
+      "ns1.brand.ls",
+      "ns2.brand.ls"
+    ],
+    "events": {
+      "registration": "2020-03-01",
+      "expiration": "2027-03-01",
+      "last_changed": "2026-02-17"
+    },
+    "raw": {
+      "remark": "local fallback sample"
+    }
+  },
+  "ai.ls": {
+    "domain": "ai.ls",
+    "handle": "AILS-20220910",
+    "port43": "whois.nic.ls",
+    "registrar": "DOMAIN.LS Registry",
+    "status": [
+      "active"
+    ],
+    "nameservers": [
+      "ns1.ai.ls",
+      "ns2.ai.ls"
+    ],
+    "events": {
+      "registration": "2022-09-10",
+      "expiration": "2028-09-10",
+      "last_changed": "2026-02-17"
+    },
+    "raw": {
+      "remark": "local fallback sample"
+    }
+  }
+}
