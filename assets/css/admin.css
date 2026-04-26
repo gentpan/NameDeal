@@ -6,6 +6,7 @@
 
 /* ========== CSS 变量定义 ========== */
 :root {
+  color-scheme: light;
   --primary-color: #0066fc;
   --primary-hover: #0052cc;
   --primary-light: #e6f0ff;
@@ -2122,19 +2123,20 @@ tr:hover {
 /* ========== 深色模式适配 ========== */
 /* 支持JS设置的data-theme属性 */
 [data-theme="dark"] {
+  color-scheme: dark;
   --primary-color: #3b82f6;
   --primary-hover: #2563eb;
-  --primary-light: #1a1a1a;
+  --primary-light: #1e293b;
   --danger-color: #ff5c5c;
   --danger-hover: #c62828;
   --success-color: #4caf50;
-  --bg-color: #0a0a0a;
-  --card-bg: #121212;
+  --bg-color: #0b0f14;
+  --card-bg: #151a21;
   --text-primary: #f5f5f5;
   --text-secondary: #b3b3b3;
-  --border-color: #242424;
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.32);
-  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.44);
+  --border-color: #354152;
+  --shadow-sm: 0 1px 0 rgba(255, 255, 255, 0.04), 0 2px 10px rgba(0, 0, 0, 0.38);
+  --shadow-md: 0 1px 0 rgba(255, 255, 255, 0.05), 0 6px 18px rgba(0, 0, 0, 0.5);
 }
 
 [data-theme="dark"] .domain-name-text {
@@ -2158,6 +2160,21 @@ tr:hover {
 [data-theme="dark"] .topbar {
   background: var(--card-bg);
   color: var(--text-primary);
+}
+
+[data-theme="dark"] body {
+  background: var(--bg-color);
+}
+
+[data-theme="dark"] .sidebar,
+[data-theme="dark"] .card,
+[data-theme="dark"] .domain-row,
+[data-theme="dark"] .stats-row,
+[data-theme="dark"] .email-settings-section,
+[data-theme="dark"] .section-toolbar,
+[data-theme="dark"] .topbar {
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
 }
 
 [data-theme="dark"] .status-badge {
@@ -2283,19 +2300,20 @@ tr:hover {
 /* 支持系统偏好（仅在auto模式下） */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
+    color-scheme: dark;
     --primary-color: #3b82f6;
     --primary-hover: #2563eb;
-    --primary-light: #1a1a1a;
+    --primary-light: #1e293b;
     --danger-color: #ff5c5c;
     --danger-hover: #c62828;
     --success-color: #4caf50;
-    --bg-color: #0a0a0a;
-    --card-bg: #121212;
+    --bg-color: #0b0f14;
+    --card-bg: #151a21;
     --text-primary: #f5f5f5;
     --text-secondary: #b3b3b3;
-    --border-color: #242424;
-    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.32);
-    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.44);
+    --border-color: #354152;
+    --shadow-sm: 0 1px 0 rgba(255, 255, 255, 0.04), 0 2px 10px rgba(0, 0, 0, 0.38);
+    --shadow-md: 0 1px 0 rgba(255, 255, 255, 0.05), 0 6px 18px rgba(0, 0, 0, 0.5);
   }
 
   :root:not([data-theme="light"]) body,
@@ -2306,6 +2324,21 @@ tr:hover {
   :root:not([data-theme="light"]) .topbar {
     background: var(--card-bg);
     color: var(--text-primary);
+  }
+
+  :root:not([data-theme="light"]) body {
+    background: var(--bg-color);
+  }
+
+  :root:not([data-theme="light"]) .sidebar,
+  :root:not([data-theme="light"]) .card,
+  :root:not([data-theme="light"]) .domain-row,
+  :root:not([data-theme="light"]) .stats-row,
+  :root:not([data-theme="light"]) .email-settings-section,
+  :root:not([data-theme="light"]) .section-toolbar,
+  :root:not([data-theme="light"]) .topbar {
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
   }
 
   :root:not([data-theme="light"]) .domain-name-text {
