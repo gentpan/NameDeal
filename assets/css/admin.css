@@ -232,7 +232,7 @@ body.login-page {
   min-height: 0;
   width: 100%;
   overflow-y: auto;
-  overflow-x: hidden;
+  overflow-x: auto;
   scrollbar-gutter: stable;
 }
 
@@ -1329,8 +1329,9 @@ input[type="color"] {
 
   .admin-footer-content {
     flex-direction: row;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 10px 14px;
+    min-width: max-content;
   }
 
   .admin-footer-separator {
@@ -1848,12 +1849,9 @@ tr:hover {
   }
 
   .admin-layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: 190px minmax(420px, 1fr);
     gap: 16px;
-  }
-
-  .sidebar {
-    position: static;
+    min-width: 650px;
   }
 
   .section-toolbar {
@@ -1962,15 +1960,6 @@ tr:hover {
     width: 95%;
   }
 
-  .topbar-inner {
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .topbar-actions {
-    width: 100%;
-    justify-content: space-between;
-  }
 }
 
 /* ========== 访问统计样式（一行显示） ========== */
