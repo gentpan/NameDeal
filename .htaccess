@@ -1,0 +1,22 @@
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    RewriteRule ^admin/?$ admin.php [L,QSA]
+    RewriteRule ^admin/(domains|stats|email|site|value|footer)/?$ admin.php?section=$1 [L,QSA]
+
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    RewriteRule ^([A-Za-z0-9.-]+\.[A-Za-z]{2,})/?$ index.php?domain=$1 [L,QSA]
+    RewriteRule ^$ index.php [L,QSA]
+</IfModule>
+
+<IfModule mod_authz_core.c>
+    <FilesMatch "^(Dockerfile|docker-compose\.yml|\.env|\.gitignore)$">
+        Require all denied
+    </FilesMatch>
+</IfModule>
