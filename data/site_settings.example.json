@@ -1,0 +1,50 @@
+{
+  "admin_password_hash": "$2y$10$REPLACE_WITH_BCRYPT_HASH",
+  "site_name": "NameDeal 域名停放",
+  "site_description": "域名出售平台",
+  "domain_value": {
+    "title": "一个好域名，一份好事业",
+    "text": "域名是互联网世界的唯一标识，是品牌在线形象的重要组成部分。一个好的域名能够：",
+    "slogan": "把握机会，拥有这个优质域名，开启您的成功之路！",
+    "items": [
+      {
+        "title": "提升品牌价值",
+        "description": "简短易记的域名让用户更容易找到您",
+        "icon_class": "fa-solid fa-layer-group"
+      },
+      {
+        "title": "助力业务增长",
+        "description": "专业域名增强用户信任度",
+        "icon_class": "fa-solid fa-arrow-trend-up"
+      },
+      {
+        "title": "投资潜力无限",
+        "description": "优质域名具有巨大升值空间",
+        "icon_class": "fa-solid fa-chart-line"
+      },
+      {
+        "title": "塑造企业形象",
+        "description": "域名是您在线业务的第一印象",
+        "icon_class": "fa-solid fa-building"
+      }
+    ]
+  },
+  "footer_links": [
+    {
+      "name": "WHOIS查询",
+      "url": "https://bluewhois.com/{domain}",
+      "icon_class": "fa-solid fa-magnifying-glass"
+    },
+    {
+      "name": "西风",
+      "url": "https://xifeng.net",
+      "icon_class": "fa-solid fa-wind"
+    },
+    {
+      "name": "更多域名",
+      "url": "https://domain.ls",
+      "icon_class": "fa-solid fa-globe"
+    }
+  ],
+  "footer_analytics_code": ""
+}

@@ -10,3 +10,13 @@ tmp/
 *.swp
 *.swo
 Thumbs.db
+
+# Runtime data and private settings
+data/*.db
+data/*.sqlite
+data/*.sqlite3
+data/*.json
+!data/*.example.json
+!data/.gitkeep
+!data/.htaccess
+data/verification_codes/
