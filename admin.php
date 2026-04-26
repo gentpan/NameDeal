@@ -823,6 +823,22 @@ if ($section === 'stats') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>域名管理后台</title>
+    <script>
+        (function() {
+            var key = 'domain_theme_mode';
+            var mode = 'auto';
+            try {
+                mode = localStorage.getItem(key) || 'auto';
+            } catch (e) {}
+            var prefersDark = false;
+            try {
+                prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            } catch (e) {}
+            var theme = mode === 'auto' ? (prefersDark ? 'dark' : 'light') : mode;
+            document.documentElement.setAttribute('data-theme', theme);
+            document.documentElement.setAttribute('data-theme-mode', mode);
+        })();
+    </script>
     <link rel="stylesheet" href="https://icons.bluecdn.com/fontawesome-pro@7.2.0/css/all.min.css" referrerpolicy="no-referrer">
     <link rel="stylesheet" href="/assets/css/admin.css?v=<?php echo filemtime(__DIR__ . '/assets/css/admin.css'); ?>">
 </head>
