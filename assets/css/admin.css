@@ -49,11 +49,6 @@ body {
   overflow-x: hidden;
 }
 
-body:not(.login-page) {
-  height: 100vh;
-  overflow: hidden;
-}
-
 /* ========== 登录页面 ========== */
 body.login-page {
   min-height: 100vh;
@@ -107,8 +102,9 @@ body.login-page {
   z-index: 100;
   background: var(--card-bg);
   box-shadow: var(--shadow-sm);
-  width: 100%;
-  margin: 0;
+  max-width: var(--admin-content-width);
+  width: calc(100% - 40px);
+  margin: 0 auto;
   border-radius: 0;
   overflow: hidden;
   box-sizing: border-box;
@@ -116,17 +112,7 @@ body.login-page {
 }
 
 .topbar::before {
-  content: "";
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: calc(-1 * (100vw - 100%));
-  height: var(--topbar-height, 65px);
-  background: var(--card-bg);
-  border-bottom: 1px solid var(--border-color);
-  box-shadow: var(--shadow-sm);
-  z-index: -1;
-  pointer-events: none;
+  content: none;
 }
 
 .topbar-inner {
@@ -231,15 +217,6 @@ body.login-page {
   flex: 1 1 auto;
   min-height: 0;
   width: 100%;
-  overflow-y: auto;
-  overflow-x: auto;
-  scrollbar-gutter: stable;
-}
-
-@supports not (scrollbar-gutter: stable) {
-  .admin-scroll {
-    overflow-y: scroll;
-  }
 }
 
 /* ========== 主布局 ========== */
@@ -1315,7 +1292,7 @@ input[type="color"] {
 /* 页脚响应式 */
 @media (max-width: 768px) {
   .topbar {
-    width: 100%;
+    width: calc(100% - 30px);
     margin-top: 0;
     top: 0;
     border-radius: 0;
@@ -1331,7 +1308,6 @@ input[type="color"] {
     flex-direction: row;
     flex-wrap: nowrap;
     gap: 10px 14px;
-    min-width: max-content;
   }
 
   .admin-footer-separator {
@@ -1849,9 +1825,8 @@ tr:hover {
   }
 
   .admin-layout {
-    grid-template-columns: 190px minmax(420px, 1fr);
+    grid-template-columns: 160px minmax(0, 1fr);
     gap: 16px;
-    min-width: 650px;
   }
 
   .section-toolbar {
