@@ -16,7 +16,7 @@ Options -Indexes
 </IfModule>
 
 <IfModule mod_authz_core.c>
-    <FilesMatch "^(Dockerfile|docker-compose\.yml|\.env|\.gitignore)$">
+    <FilesMatch "^(\.env|\.gitignore)$">
         Require all denied
     </FilesMatch>
 </IfModule>

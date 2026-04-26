@@ -2,7 +2,6 @@
 
 ![NameDeal Version](https://img.shields.io/badge/version-v1.5.0-0A66C2?style=for-the-badge)
 ![PHP](https://img.shields.io/badge/PHP-8.2%2B-777BB4?style=for-the-badge&logo=php&logoColor=white)
-![Docker PHP](https://img.shields.io/badge/Docker_PHP-8.5.5-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 ![SQLite](https://img.shields.io/badge/SQLite-enabled-003B57?style=for-the-badge&logo=sqlite&logoColor=white)
 ![License](https://img.shields.io/badge/license-MIT-16A34A?style=for-the-badge)
 ![Status](https://img.shields.io/badge/status-production_ready-111827?style=for-the-badge)
@@ -23,12 +22,10 @@ NameDeal 是一个轻量、易部署的 PHP 域名停放与询盘管理系统。
 - WHOIS 查询：后台通过 `https://api.who.ga/{domain}` 获取 WHOIS 信息。
 - 主题模式：前后台支持浅色、深色、跟随系统。
 - 图标配置：价值卡片和页脚链接支持 Font Awesome 类名，也支持安全 SVG。
-- Docker 开发环境：内置 Nginx + PHP-FPM + SQLite，本地可快速启动。
 
 ## 技术栈
 
 - PHP `8.2+`
-- Docker PHP `8.5.5-fpm-alpine`
 - Nginx / Apache
 - SQLite / PDO SQLite
 - 原生 PHP、CSS、JavaScript
@@ -44,10 +41,7 @@ NameDeal 是一个轻量、易部署的 PHP 域名停放与询盘管理系统。
 ├── assets/                    # CSS、JavaScript、图标等静态资源
 ├── core/                      # 核心业务类
 ├── data/                      # 本地配置与 SQLite 数据库
-├── docker/                    # Docker Nginx 配置
 ├── templates/                 # 前台页面模板
-├── Dockerfile
-├── docker-compose.yml
 └── nginx.conf.example
 ```
 
@@ -62,29 +56,7 @@ NameDeal 是一个轻量、易部署的 PHP 域名停放与询盘管理系统。
 - Nginx、Apache 或宝塔站点环境
 - `data/` 目录需要 PHP 可写
 
-Docker 开发环境：
-
-- Docker
-- Docker Compose
-
-## Docker 本地运行
-
-```bash
-docker compose up -d --build
-```
-
-默认访问地址：
-
-- 前台：`http://localhost:8080`
-- 后台：`http://localhost:8080/admin`
-
-查看 PHP 版本：
-
-```bash
-docker compose exec php php -v
-```
-
-## 手动部署
+## 直接上传部署
 
 1. 上传项目文件到站点根目录。
 2. 确认 PHP 版本为 `8.2+`，并启用 `curl`、`pdo_sqlite`。
@@ -98,6 +70,15 @@ cp data/email_settings.example.json data/email_settings.json
 4. 设置 `data/` 目录可写。
 5. 配置 Web 服务器伪静态。
 6. 访问后台完成域名、邮件和站点设置。
+
+宝塔部署建议：
+
+- 网站目录指向项目根目录。
+- PHP 版本选择 `8.2` 或更高。
+- 在 PHP 扩展里启用 `curl`、`pdo_sqlite`、`sqlite3`。
+- 在宝塔站点设置里添加需要绑定的多个域名。
+- 在伪静态中使用 Nginx 或 Apache 规则。
+- 使用宝塔 SSL 面板为多个域名申请或绑定证书。
 
 ## Nginx 配置
 
@@ -201,7 +182,7 @@ https://api.who.ga/{domain}
 
 ### v1.5.0 · 2026-04-26
 
-- 项目运行环境标注为 PHP `8.2+`，Docker PHP 升级到 `8.5.5`。
+- 项目运行环境标注为 PHP `8.2+`，部署方式调整为直接上传到普通 PHP 站点。
 - 新增 Sendflare API、Resend API 邮件发送支持，移除 PHP mail 发送方式。
 - WHOIS 查询改为通过 `api.who.ga` 获取。
 - 后台界面重构为全宽页头页脚、固定内容宽度和直角风格。
