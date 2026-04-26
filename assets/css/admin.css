@@ -171,10 +171,6 @@ body.login-page {
   transition: transform 0.3s ease;
 }
 
-.admin-header h1:hover .header-icon {
-  transform: scale(1.1);
-}
-
 .login-icon {
   vertical-align: middle;
   margin-right: 8px;
@@ -313,11 +309,11 @@ body.login-page {
   min-height: 60vh;
 }
 
-/* ========== 页面头部 ========== */
-.admin-header {
+/* ========== 页面工具栏 ========== */
+.section-toolbar {
   background: var(--card-bg);
   border-radius: 0;
-  padding: 24px;
+  padding: 18px 24px;
   margin-bottom: 24px;
   box-shadow: var(--shadow-sm);
   display: flex;
@@ -327,15 +323,8 @@ body.login-page {
   flex-wrap: nowrap;
 }
 
-.admin-header h1 {
-  font-size: 28px;
-  color: var(--text-primary);
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-shrink: 0;
-  white-space: nowrap;
+.section-toolbar .domain-count {
+  margin-left: 0;
 }
 
 .header-actions {
@@ -473,7 +462,6 @@ body :where(*:not([class*="spinner"])) {
 .topbar,
 .sidebar,
 .menu-item,
-.admin-header,
 .card,
 .btn,
 .btn-icon,
@@ -1868,16 +1856,11 @@ tr:hover {
     position: static;
   }
 
-  .admin-header {
+  .section-toolbar {
     flex-direction: row;
     gap: 16px;
     align-items: center;
     flex-wrap: wrap;
-  }
-
-  .admin-header h1 {
-    font-size: 24px;
-    flex-shrink: 0;
   }
 
   .domain-count {
@@ -1946,14 +1929,10 @@ tr:hover {
     padding: 30px 20px;
   }
 
-  .admin-header {
+  .section-toolbar {
     padding: 20px;
     flex-direction: column;
     align-items: stretch;
-  }
-
-  .admin-header h1 {
-    font-size: 24px;
   }
 
   .domain-search-wrapper {
@@ -2197,7 +2176,6 @@ tr:hover {
 
 [data-theme="dark"] body,
 [data-theme="dark"] .login-box,
-[data-theme="dark"] .admin-header,
 [data-theme="dark"] .card,
 [data-theme="dark"] .modal-content,
 [data-theme="dark"] .domain-card,
@@ -2346,7 +2324,6 @@ tr:hover {
 
   :root:not([data-theme="light"]) body,
   :root:not([data-theme="light"]) .login-box,
-  :root:not([data-theme="light"]) .admin-header,
   :root:not([data-theme="light"]) .card,
   :root:not([data-theme="light"]) .modal-content,
   :root:not([data-theme="light"]) .domain-card,
