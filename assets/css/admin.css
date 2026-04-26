@@ -31,6 +31,7 @@
 
 html {
   min-height: 100%;
+  overflow-y: scroll;
   overflow-x: hidden;
 }
 
@@ -89,9 +90,9 @@ body.login-page {
 /* ========== 管理页面布局 ========== */
 .admin-container {
   max-width: var(--admin-content-width);
-  width: 100%;
+  width: calc(100% - 40px);
   margin: 0 auto;
-  padding: 20px;
+  padding: 20px 0;
   box-sizing: border-box;
 }
 
@@ -121,6 +122,8 @@ body.login-page {
   justify-content: space-between;
   gap: 12px;
   padding: 14px 20px;
+  width: 100%;
+  max-width: none;
 }
 
 .brand {
@@ -1106,7 +1109,7 @@ input[type="color"] {
   z-index: 1;
   background: transparent;
   border: 0;
-  padding: 12px 20px;
+  padding: 12px 0;
   margin: 0;
   width: 100%;
   flex: 0 0 auto;
@@ -1120,6 +1123,7 @@ input[type="color"] {
 
 .admin-footer-content {
   max-width: var(--admin-content-width);
+  width: calc(100% - 40px);
   margin: 0 auto;
   display: flex;
   align-items: center;
@@ -1305,6 +1309,7 @@ input[type="color"] {
   }
 
   .admin-footer-content {
+    width: calc(100% - 30px);
     flex-direction: row;
     flex-wrap: nowrap;
     gap: 10px 14px;
@@ -1821,7 +1826,8 @@ tr:hover {
 /* ========== 响应式设计 ========== */
 @media (max-width: 768px) {
   .admin-container {
-    padding: 15px;
+    width: calc(100% - 30px);
+    padding: 15px 0;
   }
 
   .admin-layout {
@@ -1895,7 +1901,13 @@ tr:hover {
 
 @media (max-width: 480px) {
   .admin-container {
-    padding: 10px;
+    width: calc(100% - 20px);
+    padding: 10px 0;
+  }
+
+  .topbar,
+  .admin-footer-content {
+    width: calc(100% - 20px);
   }
 
   .login-box {
