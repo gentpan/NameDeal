@@ -1085,9 +1085,6 @@ if ($section === 'stats') {
                 <?php endif; ?>
             <?php elseif ($section === 'email'): ?>
                 <div class="card email-settings-card">
-                    <div class="card-section-title">
-                        <h2>邮件设置</h2>
-                    </div>
                     <form id="emailSettingsForm" class="email-settings-form" onsubmit="saveEmailSettings(event)">
                         <section class="email-settings-section">
                             <div class="email-settings-section-header">

@@ -861,17 +861,6 @@ input[type="color"] {
   margin-top: 0;
 }
 
-.card-section-title {
-  margin-bottom: 18px;
-}
-
-.card-section-title h2 {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
 .email-settings-section {
   border: 1px solid var(--border-color);
   border-radius: 12px;
