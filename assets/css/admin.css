@@ -1139,10 +1139,9 @@ input[type="color"] {
 .admin-footer {
   position: relative;
   z-index: 1;
-  background: var(--card-bg);
+  background: transparent;
   border: 0;
-  border-top: 1px solid var(--border-color);
-  padding: 24px 20px;
+  padding: 12px 20px;
   margin: 0;
   width: 100%;
   flex: 0 0 auto;
@@ -1151,17 +1150,7 @@ input[type="color"] {
 }
 
 .admin-footer::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  left: 0;
-  right: calc(-1 * (100vw - 100%));
-  width: auto;
-  transform: none;
-  background: var(--card-bg);
-  border-top: 1px solid var(--border-color);
-  z-index: -1;
-  pointer-events: none;
+  content: none;
 }
 
 .admin-footer-content {
@@ -1170,7 +1159,7 @@ input[type="color"] {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 20px;
+  gap: 16px;
   flex-wrap: nowrap;
   text-align: center;
 }
@@ -1351,8 +1340,9 @@ input[type="color"] {
   }
 
   .admin-footer-content {
-    flex-direction: column;
-    gap: 12px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 10px 14px;
   }
 
   .admin-footer-separator {
