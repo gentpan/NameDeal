@@ -1,6 +1,6 @@
 # NameDeal
 
-![NameDeal Version](https://img.shields.io/badge/version-v1.5.0-0A66C2?style=for-the-badge)
+![NameDeal Version](https://img.shields.io/badge/version-v1.6.0-0A66C2?style=for-the-badge)
 ![PHP](https://img.shields.io/badge/PHP-8.2%2B-777BB4?style=for-the-badge&logo=php&logoColor=white)
 ![SQLite](https://img.shields.io/badge/SQLite-enabled-003B57?style=for-the-badge&logo=sqlite&logoColor=white)
 ![License](https://img.shields.io/badge/license-MIT-16A34A?style=for-the-badge)
@@ -8,8 +8,8 @@
 
 NameDeal 是一个轻量、易部署的 PHP 域名停放与询盘管理系统。它适合个人域名投资者、域名经纪人和小型域名销售站点，用一个程序管理多个域名的展示页、询盘表单、访问统计、邮件通知和后台配置。
 
-当前版本：`v1.5.0`  
-最后更新：`2026-04-26`
+当前版本：`v1.6.0`  
+最后更新：`2026-08-07`
 
 ## 核心特性
 
@@ -151,7 +151,7 @@ location ^~ /core/ {
 
 ## 邮件服务
 
-NameDeal v1.5.0 支持三种发送方式：
+NameDeal v1.6.0 支持三种发送方式：
 
 - SMTP：适合自有企业邮箱、Mailgun SMTP、Amazon SES SMTP 等。
 - Sendflare API：适合使用 Sendflare HTTP API 发送。
@@ -179,6 +179,15 @@ https://api.who.ga/{domain}
 - 多域名生产部署建议统一使用 HTTPS，并开启 HSTS。
 
 ## 版本记录
+
+### v1.6.0 · 2026-08-07
+
+- 页脚五个按钮统一尺寸与样式，悬浮放大 1.3 倍并同步主题色。
+- 修复第三方 FontAwesome CDN 失效导致的图标不显示，改用官方 CDN。
+- GitHub、更多域名、WHOIS 图标改为内联 SVG，不依赖图标 CDN。
+- WHOIS 查询图标恢复 who.ga 官方品牌标识，点击直达 who.ga 查询。
+- 首页域名 WHOIS 一键查询弹窗展示注册商、到期时间等归一化信息。
+- 服务器部署版本与仓库代码保持一致，清理本地重复遗留文件。
 
 ### v1.5.0 · 2026-04-26
 

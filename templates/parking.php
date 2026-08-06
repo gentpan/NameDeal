@@ -8,8 +8,8 @@
     <title><?php echo htmlspecialchars($title); ?></title>
 
     <!-- 引入外部 CSS -->
-    <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="https://icons.bluecdn.com/fontawesome-pro@7.2.0/css/all.min.css" referrerpolicy="no-referrer">
+    <link rel="stylesheet" href="assets/css/style.css?v=20260808d">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" referrerpolicy="no-referrer">
 
     <style>
         /* 从 PHP 传递主题颜色，如果设置了就覆盖默认的 #0066FC */
@@ -289,6 +289,20 @@
                             return '';
                         }
 
+                        // 多色 SVG（品牌 logo）保留原色
+                        $fillColors = [];
+                        if (preg_match_all('/\sfill\s*=\s*(["\'])(.*?)\1/si', $svg, $fm)) {
+                            foreach ($fm[2] as $c) {
+                                $c = strtolower(trim($c));
+                                if ($c !== 'none' && $c !== 'currentcolor') {
+                                    $fillColors[$c] = true;
+                                }
+                            }
+                        }
+                        if (count($fillColors) > 1) {
+                            return $svg;
+                        }
+
                         // 移除内联 style，避免覆盖链接 hover 颜色
                         $svg = preg_replace('/\sstyle\s*=\s*(["\']).*?\1/si', '', $svg);
 
@@ -307,13 +321,13 @@
                     };
 
                     $defaultFooterLinks = [
-                        ['name' => 'WHOIS查询', 'url' => $footerWhoisUrl ?? 'https://bluewhois.com/{domain}', 'icon_class' => 'fa-solid fa-magnifying-glass'],
-                        ['name' => '西风', 'url' => $footerXifengUrl ?? 'https://xifeng.net', 'icon_class' => 'fa-solid fa-wind'],
-                        ['name' => '更多域名', 'url' => $footerMoreDomainsUrl ?? 'https://domain.ls', 'icon_class' => 'fa-solid fa-globe'],
+                        ['name' => 'WHOIS查询', 'url' => $footerWhoisUrl ?? 'https://who.ga/', 'icon_class' => '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="#22C55E" d="M492.00,256.00 L491.63,341.38 L490.50,369.79 L488.62,390.38 L485.96,406.93 L482.52,420.84 L478.27,432.80 L473.18,443.21 L467.20,452.31 L460.27,460.27 L452.31,467.20 L443.21,473.18 L432.80,478.27 L420.84,482.52 L406.93,485.96 L390.38,488.62 L369.79,490.50 L341.38,491.63 L256.00,492.00 L170.62,491.63 L142.21,490.50 L121.62,488.62 L105.07,485.96 L91.16,482.52 L79.20,478.27 L68.79,473.18 L59.69,467.20 L51.73,460.27 L44.80,452.31 L38.82,443.21 L33.73,432.80 L29.48,420.84 L26.04,406.93 L23.38,390.38 L21.50,369.79 L20.37,341.38 L20.00,256.00 L20.37,170.62 L21.50,142.21 L23.38,121.62 L26.04,105.07 L29.48,91.16 L33.73,79.20 L38.82,68.79 L44.80,59.69 L51.73,51.73 L59.69,44.80 L68.79,38.82 L79.20,33.73 L91.16,29.48 L105.07,26.04 L121.62,23.38 L142.21,21.50 L170.62,20.37 L256.00,20.00 L341.38,20.37 L369.79,21.50 L390.38,23.38 L406.93,26.04 L420.84,29.48 L432.80,33.73 L443.21,38.82 L452.31,44.80 L460.27,51.73 L467.20,59.69 L473.18,68.79 L478.27,79.20 L482.52,91.16 L485.96,105.07 L488.62,121.62 L490.50,142.21 L491.63,170.62 L492.00,256.00 Z"/><g transform="translate(-0.500000,511.863300) scale(0.100000,-0.100000)"><path fill="#FFFFFF" d="M1566 3949 c84 -26 144 -81 189 -172 49 -100 65 -173 72 -313 10 -210 -16 -382 -146 -960 -75 -337 -97 -474 -88 -562 6 -74 23 -108 59 -123 25 -10 35 -9 66 5 104 50 212 163 347 366 101 153 160 260 219 406 l45 111 -10 157 c-17 253 6 502 62 676 60 184 170 313 292 340 45 11 62 10 112 -5 49 -14 70 -28 125 -83 104 -106 146 -215 157 -403 13 -229 -59 -497 -197 -741 l-50 -88 0 -112 c1 -191 28 -334 91 -464 101 -213 241 -227 416 -42 136 144 253 415 298 688 39 234 12 621 -65 933 -32 132 -30 156 19 224 41 57 106 107 187 145 58 27 81 32 144 33 133 0 223 -64 291 -209 56 -120 79 -244 86 -467 15 -480 -77 -921 -278 -1321 -216 -430 -535 -737 -836 -804 -100 -22 -245 -15 -325 15 -103 40 -201 130 -277 256 -67 110 -140 344 -171 544 l-13 83 -76 -154 c-195 -396 -431 -644 -696 -734 -105 -35 -231 -37 -317 -4 -123 46 -234 159 -291 295 -41 98 -57 199 -57 357 0 202 24 354 130 837 89 408 112 581 90 685 -18 89 -59 118 -139 96 -56 -15 -123 -81 -146 -145 -10 -27 -19 -51 -20 -53 -1 -1 -10 0 -19 4 -21 8 -21 80 -1 200 31 176 97 309 198 400 80 72 158 106 297 128 45 7 164 -6 226 -25z"/></g></svg>'],
+                        ['name' => '西风', 'url' => $footerXifengUrl ?? 'https://xifeng.net', 'icon_class' => '<svg t="1786033318982" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1729" width="200" height="200"><path d="M630.816594 591.217203 393.202848 591.217203c-21.781072 0-39.603996 17.819854-39.603996 39.600927s17.822924 39.600927 39.603996 39.600927l237.613746 0c21.781072 0 39.60195-17.819854 39.60195-39.600927S652.597667 591.217203 630.816594 591.217203z" fill="#272636" p-id="1730"></path><path d="M393.202848 432.80531l118.80585 0c21.781072 0 39.60195-17.820877 39.60195-39.60195 0-21.782096-17.820877-39.602973-39.60195-39.602973l-118.80585 0c-21.781072 0-39.603996 17.820877-39.603996 39.602973C353.598852 414.984433 371.421776 432.80531 393.202848 432.80531z" fill="#272636" p-id="1731"></path><path d="M511.999488 0.606821c-282.434557 0-511.393179 228.958622-511.393179 511.393179 0 282.433534 228.958622 511.395226 511.393179 511.395226s511.393179-228.960669 511.393179-511.395226C1023.392668 229.565443 794.434046 0.606821 511.999488 0.606821zM828.82839 624.287389c0 113.0211-91.996251 204.523093-205.813482 204.523093L401.222499 828.810482c-113.737414 0-206.051913-91.501994-206.051913-204.523093L195.170586 399.795499c0.078795-113.025193 92.314499-204.603935 206.051913-204.603935L505.076822 195.191564c113.817232 0 204.942649 84.986603 204.942649 198.011796 1.486864 21.208021 20.555152 39.60195 42.315758 39.60195l35.523051 0c22.750143 0 40.97011 23.860431 40.97011 46.454008L828.82839 624.287389z" fill="#272636" p-id="1732"></path></svg>'],
+                        ['name' => '更多域名', 'url' => $footerMoreDomainsUrl ?? 'https://domain.ls', 'icon_class' => '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor"><path d="M352 256c0 22.2-1.2 43.6-3.3 64H163.3c-2.2-20.4-3.3-41.8-3.3-64s1.2-43.6 3.3-64H348.7c2.2 20.4 3.3 41.8 3.3 64zm28.8-64H503.9c5.3 20.5 8.1 41.9 8.1 64s-2.8 43.5-8.1 64H380.8c2.1-20.6 3.2-42 3.2-64s-1.1-43.4-3.2-64zm112.6-32H376.7c-10-63.9-29.8-117.4-55.3-151.6c78.3 20.7 142 77.5 171.9 151.6zm-149.1 0H167.7c6.1-36.4 15.5-68.6 27-94.7c10.5-23.6 22.2-40.7 33.5-51.5C239.4 3.2 248.7 0 256 0s16.6 3.2 27.8 13.8c11.3 10.8 23 27.9 33.5 51.5c11.6 26 20.9 58.2 27 94.7zm-209 0H18.6C48.6 85.9 112.2 29.1 190.6 8.4C165.1 42.6 145.3 96.1 135.3 160zM8.1 192H131.2c-2.1 20.6-3.2 42-3.2 64s1.1 43.4 3.2 64H8.1C2.8 299.5 0 278.1 0 256s2.8-43.5 8.1-64zM194.7 446.6c-11.6-26-20.9-58.2-27-94.6H344.3c-6.1 36.4-15.5 68.6-27 94.6c-10.5 23.6-22.2 40.7-33.5 51.5C272.6 508.8 263.3 512 256 512s-16.6-3.2-27.8-13.8c-11.3-10.8-23-27.9-33.5-51.5zM135.3 352c10 63.9 29.8 117.4 55.3 151.6C112.2 482.9 48.6 426.1 18.6 352H135.3zm358.1 0c-30 74.1-93.6 130.9-171.9 151.6c25.5-34.2 45.2-87.7 55.3-151.6H493.4z"/></svg>'],
                     ];
                     $renderFooterLinks = (isset($footerLinks) && is_array($footerLinks) && !empty($footerLinks)) ? array_slice($footerLinks, 0, 3) : $defaultFooterLinks;
 
-                    foreach ($renderFooterLinks as $item):
+                    foreach ($renderFooterLinks as $footerLinkIndex => $item):
                         $name = trim((string)($item['name'] ?? ''));
                         $urlTemplate = trim((string)($item['url'] ?? ''));
                         $iconClass = trim((string)($item['icon_class'] ?? 'fa-solid fa-link'));
@@ -347,57 +361,24 @@
                             $iconClass = $normalizeFooterSvgIcon($iconClass);
                         }
                     ?>
-                        <a href="<?php echo htmlspecialchars($href, ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener" title="<?php echo htmlspecialchars($name, ENT_QUOTES, 'UTF-8'); ?>">
+                        <a href="<?php echo htmlspecialchars($href, ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener" class="footer-tooltip-btn" aria-label="<?php echo htmlspecialchars($name, ENT_QUOTES, 'UTF-8'); ?>">
                             <?php if ($isSvg): ?>
                                 <span class="footer-icon footer-icon-svg" aria-hidden="true"><?php echo $iconClass; ?></span>
                             <?php else: ?>
                                 <i class="footer-icon <?php echo htmlspecialchars($iconClass, ENT_QUOTES, 'UTF-8'); ?>" aria-hidden="true"></i>
                             <?php endif; ?>
-                            <?php echo htmlspecialchars($name, ENT_QUOTES, 'UTF-8'); ?>
+                            <span class="footer-tooltip-text"><?php echo htmlspecialchars($name, ENT_QUOTES, 'UTF-8'); ?></span>
                         </a>
                     <?php endforeach; ?>
-                    <a href="https://github.com/gentpan/namedeal" target="_blank" rel="noopener" title="GitHub">
-                        <i class="footer-icon fa-brands fa-github" aria-hidden="true"></i>
-                        GitHub
+                    <a href="https://github.com/gentpan/namedeal" target="_blank" rel="noopener" class="footer-tooltip-btn footer-tooltip-github" aria-label="GitHub">
+                        <span class="footer-icon footer-icon-svg" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512" fill="currentColor"><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm25.4 36.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg></span>
+                        <span class="footer-tooltip-text">GitHub</span>
                     </a>
-                </div>
-
-                <div class="theme-toggle-wrapper">
-                    <div class="theme-toggle" title="主题" id="themeToggle">
-                        <svg class="current-icon" viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
-                            <!-- 图标会根据当前模式动态切换 -->
-                        </svg>
-                        <span class="theme-toggle-text">主题</span>
-                    </div>
-                    <div class="theme-menu" id="themeMenu">
-                        <div class="theme-menu-item" data-theme-mode="light">
-                            <svg class="theme-menu-icon" viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
-                                <path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.166a.75.75 0 00-1.06-1.06l-1.591 1.59a.75.75 0 101.06 1.061l1.591-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.834 18.894a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 10-1.061 1.06l1.59 1.591zM12 18a.75.75 0 01.75.75V21a.75.75 0 01-1.5 0v-2.25A.75.75 0 0112 18zM7.758 17.303a.75.75 0 00-1.061-1.06l-1.591 1.59a.75.75 0 001.06 1.061l1.591-1.59zM6 12a.75.75 0 01-.75.75H3a.75.75 0 010-1.5h2.25A.75.75 0 016 12zM6.697 7.757a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 00-1.061 1.06l1.59 1.591z" />
+                    <div class="theme-toggle-wrapper">
+                        <div class="footer-tooltip-btn theme-toggle" id="themeToggle" role="button" tabindex="0" aria-label="主题">
+                            <svg class="current-icon" viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
                             </svg>
-                            <span class="theme-menu-text">浅色模式</span>
-                            <svg class="theme-menu-check" viewBox="0 0 24 24" fill="currentColor" width="16" height="16" style="display: none;">
-                                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
-                            </svg>
-                        </div>
-                        <div class="theme-menu-separator"></div>
-                        <div class="theme-menu-item" data-theme-mode="dark">
-                            <svg class="theme-menu-icon" viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
-                                <path fill-rule="evenodd" d="M9.528 1.718a.75.75 0 01.162.819A8.97 8.97 0 009 6a9 9 0 009 9 8.97 8.97 0 003.463-.69.75.75 0 01.981.98 10.503 10.503 0 01-9.694 6.46c-5.799 0-10.5-4.701-10.5-10.5 0-4.368 2.667-8.112 6.46-9.694a.75.75 0 01.818.162z" clip-rule="evenodd" />
-                            </svg>
-                            <span class="theme-menu-text">深色模式</span>
-                            <svg class="theme-menu-check" viewBox="0 0 24 24" fill="currentColor" width="16" height="16" style="display: none;">
-                                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
-                            </svg>
-                        </div>
-                        <div class="theme-menu-separator"></div>
-                        <div class="theme-menu-item" data-theme-mode="auto">
-                            <svg class="theme-menu-icon" viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
-                                <path d="M20 3H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h4v2H8v2h8v-2h-4v-2h4c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 12H4V5h16v10z" />
-                            </svg>
-                            <span class="theme-menu-text">跟随系统</span>
-                            <svg class="theme-menu-check" viewBox="0 0 24 24" fill="currentColor" width="16" height="16" style="display: none;">
-                                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
-                            </svg>
+                            <span class="footer-tooltip-text">主题</span>
                         </div>
                     </div>
                 </div>

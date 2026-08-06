@@ -45,123 +45,60 @@
   }
 })();
 
-// 主题切换功能 - 支持三种模式：浅色、深色、跟随系统
+// 主题切换功能 - 太阳/月亮点击切换，初次访客跟随系统
 (function () {
   "use strict";
 
   const THEME_KEY = "domain_theme_mode";
-  const THEMES = ["light", "dark", "auto"];
 
-  // 检测系统主题偏好
   function getSystemTheme() {
-    if (
-      window.matchMedia &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches
-    ) {
+    if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
       return "dark";
     }
     return "light";
   }
 
-  // 获取当前主题模式
   function getThemeMode() {
-    return localStorage.getItem(THEME_KEY) || "auto";
+    return localStorage.getItem(THEME_KEY) || getSystemTheme();
   }
 
-  // 保存主题模式
   function saveThemeMode(mode) {
     localStorage.setItem(THEME_KEY, mode);
   }
 
-  // 应用主题
   function applyTheme(mode) {
-    let actualTheme;
-
-    if (mode === "auto") {
-      actualTheme = getSystemTheme();
-    } else {
-      actualTheme = mode;
-    }
-
-    document.documentElement.setAttribute("data-theme", actualTheme);
-    document.documentElement.setAttribute("data-theme-mode", mode);
+    document.documentElement.setAttribute("data-theme", mode);
     updateThemeIcon(mode);
   }
 
-  // 更新主题图标和菜单状态
   function updateThemeIcon(mode) {
-    // 支持前台和后台两种ID
     const themeToggle = document.getElementById("themeToggle") || document.getElementById("adminThemeToggle");
-    const themeMenu = document.getElementById("themeMenu") || document.getElementById("adminThemeMenu");
-    if (!themeToggle || !themeMenu) return;
-
+    if (!themeToggle) return;
     const currentIcon = themeToggle.querySelector(".current-icon");
+    if (!currentIcon) return;
 
-    // 定义图标路径
-    const iconPaths = {
-      light:
-        '<path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.166a.75.75 0 00-1.06-1.06l-1.591 1.59a.75.75 0 101.06 1.061l1.591-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.834 18.894a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 10-1.061 1.06l1.59 1.591zM12 18a.75.75 0 01.75.75V21a.75.75 0 01-1.5 0v-2.25A.75.75 0 0112 18zM7.758 17.303a.75.75 0 00-1.061-1.06l-1.591 1.59a.75.75 0 001.06 1.061l1.591-1.59zM6 12a.75.75 0 01-.75.75H3a.75.75 0 010-1.5h2.25A.75.75 0 016 12zM6.697 7.757a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 00-1.061 1.06l1.59 1.591z" />',
-      dark: '<path fill-rule="evenodd" d="M9.528 1.718a.75.75 0 01.162.819A8.97 8.97 0 009 6a9 9 0 009 9 8.97 8.97 0 003.463-.69.75.75 0 01.981.98 10.503 10.503 0 01-9.694 6.46c-5.799 0-10.5-4.701-10.5-10.5 0-4.368 2.667-8.112 6.46-9.694a.75.75 0 01.818.162z" clip-rule="evenodd" />',
-      auto: '<path d="M20 3H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h4v2H8v2h8v-2h-4v-2h4c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 12H4V5h16v10z"/>',
-    };
-
-    // 更新当前显示的图标
-    if (currentIcon && iconPaths[mode]) {
-      currentIcon.innerHTML = iconPaths[mode];
-    }
-
-    // 更新菜单中的选中状态
-    const menuItems = themeMenu.querySelectorAll(".theme-menu-item");
-    menuItems.forEach((item) => {
-      const check = item.querySelector(".theme-menu-check");
-      if (item.getAttribute("data-theme-mode") === mode) {
-        item.classList.add("active");
-        if (check) check.style.display = "block";
-      } else {
-        item.classList.remove("active");
-        if (check) check.style.display = "none";
-      }
-    });
-  }
-
-  // 显示/隐藏主题菜单
-  function toggleThemeMenu() {
-    const themeMenu = document.getElementById("themeMenu") || document.getElementById("adminThemeMenu");
-    if (!themeMenu) return;
-
-    if (themeMenu.classList.contains("show")) {
-      themeMenu.classList.remove("show");
+    if (mode === "dark") {
+      currentIcon.innerHTML = '<path d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />';
     } else {
-      themeMenu.classList.add("show");
+      currentIcon.innerHTML = '<path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.166a.75.75 0 00-1.06-1.06l-1.591 1.59a.75.75 0 101.06 1.061l1.591-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.834 18.894a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 10-1.061 1.06l1.59 1.591zM12 18a.75.75 0 01.75.75V21a.75.75 0 01-1.5 0v-2.25A.75.75 0 0112 18zM7.758 17.303a.75.75 0 00-1.061-1.06l-1.591 1.59a.75.75 0 001.06 1.061l1.591-1.59zM6 12a.75.75 0 01-.75.75H3a.75.75 0 010-1.5h2.25A.75.75 0 016 12zM6.697 7.757a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 00-1.061 1.06l1.59 1.591z" />';
     }
   }
 
-  // 选择主题
-  function selectTheme(mode) {
-    saveThemeMode(mode);
-    applyTheme(mode);
-
-    // 关闭菜单
-    const themeMenu = document.getElementById("themeMenu");
-    if (themeMenu) {
-      themeMenu.classList.remove("show");
-    }
+  function toggleTheme() {
+    const current = getThemeMode();
+    const next = current === "dark" ? "light" : "dark";
+    saveThemeMode(next);
+    applyTheme(next);
   }
 
-  // 监听系统主题变化（仅在auto模式下）
   function watchSystemTheme() {
     if (window.matchMedia) {
       const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-
       const handleChange = function (e) {
-        const currentMode = getThemeMode();
-        if (currentMode === "auto") {
-          const newTheme = e.matches ? "dark" : "light";
-          document.documentElement.setAttribute("data-theme", newTheme);
+        if (!localStorage.getItem(THEME_KEY)) {
+          applyTheme(e.matches ? "dark" : "light");
         }
       };
-
-      // 兼容新旧API
       if (mediaQuery.addEventListener) {
         mediaQuery.addEventListener("change", handleChange);
       } else if (mediaQuery.addListener) {
@@ -170,72 +107,25 @@
     }
   }
 
-  // 初始化主题
   function initTheme() {
-    // 系统完整性检查（必须保留）
     if (window._sysVerify && !window._sysVerify()) {
       document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;text-align:center;font-family:system-ui;background:#fff;"><div><h1 style="color:#dc3545;margin-bottom:20px;font-size:24px;">错误：版权信息缺失</h1><p style="color:#666;font-size:16px;line-height:1.6;">请保留完整的版权信息，删除版权信息会导致系统无法正常运行。</p></div></div>';
       throw new Error('System integrity check failed');
     }
-    const savedMode = getThemeMode();
-    applyTheme(savedMode);
+    applyTheme(getThemeMode());
     watchSystemTheme();
   }
 
-  // 绑定点击事件
   function bindThemeToggle() {
     const themeToggle = document.getElementById("themeToggle");
-    const themeMenu = document.getElementById("themeMenu");
-
     if (themeToggle) {
-      // 点击主题按钮显示/隐藏菜单
       themeToggle.addEventListener("click", function (e) {
         e.stopPropagation();
-        toggleThemeMenu();
+        toggleTheme();
       });
     }
-
-    // 绑定菜单项点击事件
-    if (themeMenu) {
-      const menuItems = themeMenu.querySelectorAll(".theme-menu-item");
-      menuItems.forEach((item) => {
-        item.addEventListener("click", function (e) {
-          e.stopPropagation();
-          const mode = item.getAttribute("data-theme-mode");
-          if (mode) {
-            selectTheme(mode);
-          }
-        });
-      });
-    }
-
-    // 点击页面其他地方关闭菜单
-    document.addEventListener("click", function (e) {
-      const themeMenu = document.getElementById("themeMenu");
-      const themeToggle = document.getElementById("themeToggle");
-
-      if (
-        themeMenu &&
-        themeToggle &&
-        !themeMenu.contains(e.target) &&
-        !themeToggle.contains(e.target)
-      ) {
-        themeMenu.classList.remove("show");
-      }
-    });
-
-    // 按ESC键关闭菜单
-    document.addEventListener("keydown", function (e) {
-      if (e.key === "Escape") {
-        const themeMenu = document.getElementById("themeMenu");
-        if (themeMenu) {
-          themeMenu.classList.remove("show");
-        }
-      }
-    });
   }
 
-  // 页面加载完成后初始化
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", function () {
       initTheme();

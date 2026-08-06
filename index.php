@@ -7,6 +7,7 @@
 
 // 引入核心类
 require_once __DIR__ . '/core/DomainConfig.php';
+require_once __DIR__ . '/core/Lang.php';
 require_once __DIR__ . '/core/EmailHandler.php';
 require_once __DIR__ . '/core/StatsTracker.php';
 
@@ -81,7 +82,7 @@ if ($siteName === '') {
     $siteName = 'NameDeal';
 }
 $footerLinks = $domainConfig->get('footer_links', []);
-$footerWhoisUrl = $domainConfig->get('footer_whois_url', 'https://bluewhois.com/{domain}');
+$footerWhoisUrl = $domainConfig->get('footer_whois_url', 'https://who.ga/whois/{domain}');
 $footerXifengUrl = $domainConfig->get('footer_xifeng_url', 'https://xifeng.net');
 $footerMoreDomainsUrl = $domainConfig->get('footer_more_domains_url', 'https://domain.ls');
 $footerAnalyticsCode = $domainConfig->get('footer_analytics_code', '');
